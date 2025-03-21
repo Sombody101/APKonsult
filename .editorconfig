@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# S907: "goto" statement should not be used
+dotnet_diagnostic.S907.severity = none

@@ -1,0 +1,8 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+using System.Reflection;
+
+/* Generated on <#= DateTime.Now.ToString("dddd, MMMM dd, yyyy hh:mm:ss tt") #> */
+[assembly: AssemblyVersion("<#= DateTime.Now.ToString("yyyy.MM.dd.HHmm") #>")]
+[assembly: AssemblyFileVersion("<#= DateTime.Now.ToString("yyyy.MM.dd.HHmm") #>")]
+[assembly: AssemblyInformationalVersion("<#= DateTime.Now.ToString("yyyy.MM.dd.HHmm") #> RC1.4")]

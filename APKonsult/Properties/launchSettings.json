@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "APKonsult": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
