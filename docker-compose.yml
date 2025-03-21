@@ -1,0 +1,32 @@
+services:
+    # Main bot service
+    apkonsult:
+        container_name: apkonsult
+        image: ghcr.io/sombody101/apkonsult:latest # Specify image name (for watchtower)
+        volumes:
+            - /mnt/AppStorage/apkonsult-bot/configs:/app/configs/ # Config files (does the bot even use this anymore?)
+        environment:
+            # Prevents CultureNotFoundException on container start
+            - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+        restart: unless-stopped
+
+    # Auto updater
+    watchtower:
+        image: containrrr/watchtower
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        command: --interval 240 # Four hours
+
+    # Repl C# Compiler
+    # repl-cs-compiler:
+    #     image: ghcr.io/discord-csharp/csharprepl:latest
+    #     restart: always
+    #     read_only: true
+    #     user: www-data
+    #     environment:
+    #         - ASPNETCORE_URLS=http://+:31337
+    #     ports:
+    #         - "31337:31337"
+    #     tmpfs:
+    #         - /tmp
+    #         - /var
