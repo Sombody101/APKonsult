@@ -11,10 +11,6 @@ COPY . .
 WORKDIR "/src/APKonsult"
 RUN dotnet build "./APKonsult.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-RUN adduser -u 1001 -D docker_user
-
-USER docker_user
-
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./APKonsult.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false

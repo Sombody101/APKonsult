@@ -9,7 +9,6 @@ services:
             # Prevents CultureNotFoundException on container start
             - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
         restart: unless-stopped
-        user: docker_user:docker_user
 
     # Auto updater
     watchtower:
