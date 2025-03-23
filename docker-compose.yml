@@ -9,6 +9,7 @@ services:
             # Prevents CultureNotFoundException on container start
             - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
         restart: unless-stopped
+        user: 1001:1001
 
     # Auto updater
     watchtower:
@@ -16,17 +17,3 @@ services:
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
         command: --interval 240 # Four hours
-
-    # Repl C# Compiler
-    # repl-cs-compiler:
-    #     image: ghcr.io/discord-csharp/csharprepl:latest
-    #     restart: always
-    #     read_only: true
-    #     user: www-data
-    #     environment:
-    #         - ASPNETCORE_URLS=http://+:31337
-    #     ports:
-    #         - "31337:31337"
-    #     tmpfs:
-    #         - /tmp
-    #         - /var
