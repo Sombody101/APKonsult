@@ -23,81 +23,81 @@ public class BotManager
         Description("Gives the specified user bot administrator status."),
         RequireBotOwner]
     public async Task AddAdminAsync(CommandContext ctx,
-        [Description("The ID of the wanted user")] ulong user_id)
+        [Description("The ID of the wanted user")] ulong userId)
     {
-        DiscordUser? dis_user = await ctx.Client.TryGetUserAsync(user_id);
+        DiscordUser? disUser = await ctx.Client.TryGetUserAsync(userId);
 
-        if (dis_user is null)
+        if (disUser is null)
         {
             await ctx.RespondAsync("Failed to find a user by that ID!");
             return;
         }
 
-        UserDbEntity? db_user = await _dbContext.Users.FindAsync(user_id);
+        UserDbEntity? dbUser = await _dbContext.Users.FindAsync(userId);
 
-        if (db_user is null)
+        if (dbUser is null)
         {
             UserDbEntity new_user = new()
             {
-                Username = dis_user.Username,
-                Id = dis_user.Id,
+                Username = disUser.Username,
+                Id = disUser.Id,
                 IsBotAdmin = true, // Add user as an admin
             };
 
             _ = await _dbContext.Users.AddAsync(new_user);
         }
-        else if (!db_user.IsBotAdmin)
+        else if (!dbUser.IsBotAdmin)
         {
-            db_user.IsBotAdmin = true;
+            dbUser.IsBotAdmin = true;
         }
         else
         {
-            await ctx.RespondAsync($"{dis_user.Username} is already an administrator!");
+            await ctx.RespondAsync($"{disUser.Username} is already an administrator!");
             return;
         }
 
         _ = await _dbContext.SaveChangesAsync();
-        await ctx.RespondAsync($"{dis_user.Mention} is now registered as a bot administrator.");
+        await ctx.RespondAsync($"{disUser.Mention} is now registered as a bot administrator.");
     }
 
     [Command("removeadmin"),
         Description("Removes bot administrator status from the specified user"),
         RequireBotOwner]
-    public async ValueTask RemoveAdminAsync(CommandContext ctx, ulong user_id)
+    public async ValueTask RemoveAdminAsync(CommandContext ctx, ulong userId)
     {
-        DiscordUser? dis_user = await ctx.Client.TryGetUserAsync(user_id);
+        DiscordUser? disUser = await ctx.Client.TryGetUserAsync(userId);
 
-        if (dis_user is null)
+        if (disUser is null)
         {
             await ctx.RespondAsync("Failed to find a user by that ID!");
             return;
         }
 
-        UserDbEntity? db_user = await _dbContext.Users.FindAsync(user_id);
+        UserDbEntity? dbUser = await _dbContext.Users.FindAsync(userId);
 
-        if (db_user is null)
+        if (dbUser is null)
         {
-            UserDbEntity new_user = new()
+            UserDbEntity newUser = new()
             {
-                Username = dis_user.Username,
-                Id = dis_user.Id,
+                Username = disUser.Username,
+                Id = disUser.Id,
                 IsBotAdmin = false, // Set to false
             };
 
-            _ = await _dbContext.Users.AddAsync(new_user);
+            _ = await _dbContext.Users.AddAsync(newUser);
         }
-        else if (db_user.IsBotAdmin)
+        else if (dbUser.IsBotAdmin)
         {
-            db_user.IsBotAdmin = false;
+            dbUser.IsBotAdmin = false;
         }
         else
         {
-            await ctx.RespondAsync($"{dis_user.Username} wasn't an administrator!");
+            await ctx.RespondAsync($"{disUser.Username} wasn't an administrator!");
             return;
         }
 
         _ = await _dbContext.SaveChangesAsync();
-        await ctx.RespondAsync($"{dis_user.Username} is no longer a bot administrator.");
+        await ctx.RespondAsync($"{disUser.Username} is no longer a bot administrator.");
     }
 
     [Command("listadmins"), RequireBotOwner]
@@ -143,7 +143,7 @@ public class BotManager
         }
 
         await ConfigManager.Manager.SaveBotConfig();
-        await ctx.RespondAsync($"Added {prefixes.Length} prefix{"es".Pluralize(prefixes.Length != 1)}.\nChanges will be installed on next restart.");
+        await ctx.RespondAsync($"Added {prefixes.Length} prefix{"es".Pluralize(prefixes.Length)}.\nChanges will be installed on next restart.");
     }
 
     [Command("restart"),
@@ -151,13 +151,13 @@ public class BotManager
         RequireBotOwner]
     public static async ValueTask RestartAsync(CommandContext ctx, int exit_code = 0)
     {
-        string open_path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AppDomain.CurrentDomain.FriendlyName + ".exe");
+        string openPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{AppDomain.CurrentDomain.FriendlyName}.exe");
 
         await ctx.RespondAsync(embed: new DiscordEmbedBuilder()
             .WithTitle("Restarting")
             .WithColor(Shared.DefaultEmbedColor)
             .AddField("Exit Code", exit_code.ToString())
-            .AddField("Restart Location", open_path)
+            .AddField("Restart Location", openPath)
             .AddField("Restart Time", DateTime.Now.ToString())
             .AddField("Restart Time UTC", DateTime.UtcNow.ToString())
             .WithFooter("Restart will take ~1000ms to account for file stream exits and bot initialization.")
@@ -165,7 +165,7 @@ public class BotManager
 
 #if DEBUG
         // Docker should restart APKonsult automatically
-        System.Diagnostics.Process.Start(open_path, Shared.PREVIOUS_INSTANCE_ARG);
+        System.Diagnostics.Process.Start(openPath, Shared.PREVIOUS_INSTANCE_ARG);
 #endif
 
         Environment.Exit(exit_code);
@@ -185,8 +185,15 @@ public class BotManager
             _dbContext = context;
         }
 
-        [Command("user"), DefaultGroupCommand]
-        public async ValueTask BlacklistMemberAsync(CommandContext ctx, DiscordUser user, [RemainingText] string? reason = null)
+        [Command("user"),
+            DefaultGroupCommand]
+        public async ValueTask BlacklistMemberAsync(
+            CommandContext ctx,
+
+            DiscordUser user,
+
+            [RemainingText]
+            string? reason = null)
         {
             BlacklistedDbEntity? activeUser = _dbContext.Set<BlacklistedDbEntity>()
                 .Where(bl => bl.UserId == user.Id)
@@ -215,7 +222,14 @@ public class BotManager
         }
 
         [Command("userid")]
-        public async ValueTask BlacklistMemberAsync(CommandContext ctx, ulong user_id, [RemainingText] string? reason = null)
+        public async ValueTask BlacklistMemberAsync(
+            CommandContext ctx,
+
+            [Description("The ID of the user to blacklist.")]
+            ulong user_id,
+
+            [Description("An optional reason as to why this user cannot use APKonsult."), RemainingText]
+            string? reason = null)
         {
             DiscordUser? user = await ctx.Client.TryGetUserAsync(user_id);
 

@@ -19,7 +19,7 @@ public class UserReactionCommand
     [Command("add"), DefaultGroupCommand]
     public async Task AddReactionAsync(CommandContext ctx, DiscordEmoji emoji)
     {
-        var user = await _dbContext.FindOrCreateUserAsync(ctx.User);
+        var user = await _dbContext.FindOrCreateDbUserAsync(ctx.User);
         var emoji_name = emoji.GetDiscordName();
 
         if (user.ReactionEmoji == emoji_name)
@@ -36,7 +36,7 @@ public class UserReactionCommand
     [Command("clear"), Description("Clears the reaction emoji (AKA: Stops the reactions)")]
     public async Task RemoveReactionAsync(CommandContext ctx)
     {
-        var user = await _dbContext.FindOrCreateUserAsync(ctx.User);
+        var user = await _dbContext.FindOrCreateDbUserAsync(ctx.User);
 
         if (user.ReactionEmoji == string.Empty)
         {

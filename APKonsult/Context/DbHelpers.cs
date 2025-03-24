@@ -1,13 +1,11 @@
 ﻿using APKonsult.Models;
 using DSharpPlus.Entities;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.EntityFrameworkCore;
 
 namespace APKonsult.Context;
 
 internal static class DbHelpers
 {
-    public static async ValueTask<UserDbEntity> FindOrCreateUserAsync(this APKonsultContext _dbContext, DiscordUser dUser)
+    public static async ValueTask<UserDbEntity> FindOrCreateDbUserAsync(this APKonsultContext _dbContext, DiscordUser dUser)
     {
         UserDbEntity? user = await _dbContext.Users.FindAsync(dUser.Id);
 
@@ -28,7 +26,7 @@ internal static class DbHelpers
         return user;
     }
 
-    public static async ValueTask<GuildDbEntity> FindOrCreateGuildAsync(this APKonsultContext _dbContext, DiscordGuild guild)
+    public static async ValueTask<GuildDbEntity> FindOrCreateDbGuildAsync(this APKonsultContext _dbContext, DiscordGuild guild)
     {
         GuildDbEntity? dbGuild = await _dbContext.Guilds.FindAsync(guild.Id);
 
@@ -39,7 +37,10 @@ internal static class DbHelpers
 
         dbGuild = new GuildDbEntity(guild.Id)
         {
-            Settings = new() { GuildId = guild.Id }
+            Settings = new()
+            {
+                GuildId = guild.Id
+            }
         };
 
         _ = await _dbContext.Guilds.AddAsync(dbGuild);

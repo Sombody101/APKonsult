@@ -63,7 +63,7 @@ public async Task StartAsync(CancellationToken cancellationToken)
             .AddField("Start time", $"{APKonsultBot.StartupTimer.ElapsedMilliseconds:n0}ms", true)
             .AddField("Tick count", $"{APKonsultBot.StartupTimer.ElapsedTicks:n0} ticks", true)
             .AddField("Bot version", $"v{assembly.GetName().Version}", true)
-            .AddField("Build type", $"***{Program.BuildType}***", true)
+            .AddField("Build type", $"***{Program.BUILD_TYPE}***", true)
             .AddField("Runtime version", $"R{assembly.ImageRuntimeVersion}", true)
             .MakeWide();
 

@@ -1,5 +1,6 @@
 ﻿using APKonsult.CommandChecks.Attributes;
 using APKonsult.Context;
+using APKonsult.Interactivity.Moments.Pagination;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
@@ -8,12 +9,12 @@ using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
-using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using System.ComponentModel;
 using System.Reflection;
 using System.Text;
+using Page = APKonsult.Interactivity.Moments.Pagination.Page;
 
 namespace APKonsult.Commands;
 
@@ -24,11 +25,13 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
     [Command("help"),
         Description($"Shows help information for commands. (Use `{NO_CODE_ARG}` to disable bot-tester information)")]
     public async ValueTask ExecuteAsync(
-        CommandContext context,
+        CommandContext ctx,
 
-        [RemainingText, Description("The command to get help information for.")]
+        [Description("The parentCommand to get help information for."),
+            RemainingText]
         string? command = null)
     {
+        // Strip app information (only does anything if the user is a bot tester)
         bool noCode = command?.EndsWith(NO_CODE_ARG) is true;
         if (noCode)
         {
@@ -37,31 +40,29 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
 
         if (string.IsNullOrWhiteSpace(command))
         {
-            var embed = await GetCommandListAsync(context);
+            await ctx.PaginateAsync(GetCommandPagesAsync(ctx, userIsAdmin: await IncludeAdminModules(ctx, _dbContext)));
 
-            if (embed is null)
+            return;
+        }
+        else if (GetCommand(ctx.Extension.Commands.Values, command) is Command foundCommand)
+        {
+            if (foundCommand.Subcommands.Count > 0)
             {
+                await ctx.PaginateAsync(GetCommandPagesAsync(ctx, foundCommand, await IncludeAdminModules(ctx, _dbContext)));
                 return;
             }
 
-            await context.RespondAsync(embed);
-            return;
-        }
-        else if (GetCommand(context.Extension.Commands.Values, command) is Command foundCommand)
-        {
-            await context.RespondAsync(await GetHelpMessageAsync(context, foundCommand, noCode));
+            await ctx.RespondAsync(await GetCommandMessageAsync(ctx, foundCommand, noCode));
             return;
         }
 
-        await context.RespondAsync($"Failed to find a command by the name `{command}`.");
+        await ctx.RespondAsync($"Failed to find a Command by the name `{command}`.");
     }
 
-    public async Task<DiscordMessageBuilder?> GetCommandListAsync(CommandContext context)
+    public static IEnumerable<Page> GetCommandPagesAsync(CommandContext context, Command? parentCommand = null, bool userIsAdmin = false)
     {
-        bool isAdmin = context.User.IsOwner() || await context.User.IsAdmin(_dbContext);
-
-        var commands = context.Extension.Commands.Values
-            .Where(c => isAdmin || !c.Attributes.Any(a =>
+        var commands = (parentCommand?.Subcommands ?? context.Extension.Commands.Values)
+            .Where(c => userIsAdmin || !c.Attributes.Any(a =>
             {
                 Type attrType = a.GetType();
                 return attrType == typeof(RequireAdminUserAttribute)
@@ -70,46 +71,27 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
             .OrderBy(x => x.Name)
             .ToList();
 
-        if (commands.Count == 0)
-        {
-            return new DiscordMessageBuilder().WithContent("No commands available.");
-        }
-
         var groupedCommands = commands.GroupBy(c => c.Method?.DeclaringType?.Name ?? "Global");
-
-        var pages = new List<Page>();
-        var selectOptions = new List<DiscordSelectComponentOption>();
-        int pageIndex = 0;
 
         foreach (var group in groupedCommands)
         {
-            StringBuilder commandList = new();
-            foreach (var command in group)
-            {
-                commandList.AppendLine($"`{command.Name.Titleize()}`: {command.Description ?? "No description provided"}");
-            }
-
             var embed = new DiscordEmbedBuilder()
                 .WithTitle(group.Key)
-                .WithDescription(commandList.ToString())
                 .WithColor(DiscordColor.CornflowerBlue);
 
-            pages.Add(new Page(embed: embed.Build()));
-            selectOptions.Add(new DiscordSelectComponentOption(group.Key, pageIndex.ToString()));
-        }
+            foreach (var command in group)
+            {
+                embed.AddField(command.Name.Titleize(), command.Description ?? "No description provided.");
+            }
 
-        if (pages.Count == 1)
-        {
-            return new DiscordMessageBuilder()
-                .WithContent($"A total of {commands.Count:N0} commands were found. Use `help [command]` for more information on any of them.")
-                .AddEmbed(pages[0].Embed);
+            var message = new DiscordMessageBuilder()
+                .AddEmbed(embed);
+
+            yield return new Page(message, description: embed.Fields.Select(x => x.Name).Humanize());
         }
-     
-        await context.Channel.SendPaginatedMessageAsync(context.Member, pages);
-        return null;
     }
 
-    private static async ValueTask<DiscordMessageBuilder> GetHelpMessageAsync(CommandContext context, Command command, bool noCode = false)
+    private static async ValueTask<DiscordMessageBuilder> GetCommandMessageAsync(CommandContext context, Command command, bool noCode = false)
     {
         DiscordEmbedBuilder embed = new();
 
@@ -215,7 +197,7 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
                     return GetCommand(foundCommand.Subcommands, name[(spaceIndex + 1)..]);
                 }
 
-                // // Check for default group command
+                // // Check for default group parentCommand
                 // if (foundCommand.Method is null) // Is class
                 // {
                 //     var found_sub_command = foundCommand.Subcommands.FirstOrDefault(sub =>
@@ -382,5 +364,10 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
         }
 
         return Nullable.GetUnderlyingType(type) ?? type;
+    }
+
+    private static async ValueTask<bool> IncludeAdminModules(CommandContext ctx, APKonsultContext _dbContext)
+    {
+        return ctx.User.IsOwner() || await ctx.User.IsAdmin(_dbContext);
     }
 }

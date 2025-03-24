@@ -39,7 +39,7 @@ public static class Qol
     {
         return go
             ? plural
-            : '\0';
+            : '\u200B';
     }
 
     /// <summary>

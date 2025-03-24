@@ -3,6 +3,7 @@ using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Entities;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Text;
 
 namespace APKonsult.Commands;
 
@@ -12,13 +13,13 @@ public static class PingCommand
         Description("Pings the bot and returns the gateway latency.")]
     public static async Task PingAsync(CommandContext ctx)
     {
-        var latency = ctx.Client.GetConnectionLatency(ctx.Guild!.Id);
+        TimeSpan latency = ctx.Client.GetConnectionLatency(ctx.Guild!.Id);
 
         await ctx.RespondAsync(embed: new DiscordEmbedBuilder()
             .WithTitle(Random.Shared.Next() % 3948 == 0
-                ? $"What you want fag?"
+                ? "Pongie!"
                 : "Pong!")
-            .WithColor(Shared.DefaultEmbedColor)
+            .WithColor()
             .AddField($"Response latency", $"{latency.Milliseconds}ms ({latency.TotalMilliseconds}ms)"));
     }
 
@@ -28,24 +29,42 @@ public static class PingCommand
     {
         await ctx.RespondAsync(embed: new DiscordEmbedBuilder()
             .WithTitle("Uptime")
-            .WithColor(Shared.DefaultEmbedColor)
+            .WithColor()
             .WithDescription(FormatTickCount()));
     }
 
     [Command("echo"),
         Description("Makes the bot create a message with your text")]
-    public static async Task EchoAsync(CommandContext ctx, [RemainingText] string message)
+    public static async Task EchoAsync(
+        CommandContext ctx, 
+        
+        [Description("The text you want APKonsult to reply with."),
+            RemainingText] 
+        string message)
     {
-        if (!string.IsNullOrEmpty(message))
-            await ctx.RespondAsync(message);
+        if (string.IsNullOrEmpty(message))
+        {
+            return;
+        }
+
+        await ctx.RespondAsync(message);
     }
 
     [Command("embed"),
         Description("The same as 'echo', but prints the text in an embed")]
-    public static async Task EchoEmbedAsync(CommandContext ctx, [RemainingText] string message)
+    public static async Task EchoEmbedAsync(
+        CommandContext ctx, 
+        
+        [Description("The test you want APKonsult to reply with via an embed."),
+            RemainingText]
+        string message)
     {
-        if (!string.IsNullOrEmpty(message))
-            await ctx.RespondAsync(new DiscordEmbedBuilder().WithDescription(message));
+        if (string.IsNullOrEmpty(message))
+        {
+            return;
+        }
+
+        await ctx.RespondAsync(new DiscordEmbedBuilder().WithDescription(message));
     }
 
     public static string FormatTickCount()
@@ -57,6 +76,39 @@ public static class PingCommand
         int minutes = uptime.Minutes;
         int seconds = uptime.Seconds;
 
-        return $"{days} day{'s'.Pluralize(days)}, {hours} hour{'s'.Pluralize(hours)}, {minutes} minute{'s'.Pluralize(minutes)}, {seconds} second{'s'.Pluralize(seconds)} ({uptime.TotalMilliseconds:n0}ms)";
+        StringBuilder output = new();
+
+        if (days is not 0)
+        {
+            _ = output.Append(days)
+                .Append(" day")
+                .Append('s'.Pluralize(days))
+                .Append(", ");
+        }
+
+        if (hours is not 0)
+        {
+            _ = output.Append(hours)
+                .Append(" hour")
+                .Append('s'.Pluralize(hours))
+                .Append(", ");
+        }
+
+        if (minutes is not 0)
+        {
+            _ = output.Append(minutes)
+                .Append(" minute")
+                .Append('s'.Pluralize(minutes))
+                .Append(", ");
+        }
+
+        if (seconds is not 0)
+        {
+            _ = output.Append(seconds)
+                .Append(" second")
+                .Append('s'.Pluralize(seconds));
+        }
+
+        return $"{output} ({uptime.TotalMilliseconds:n0}ms)";
     }
 }
