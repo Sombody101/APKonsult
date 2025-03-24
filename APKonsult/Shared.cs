@@ -81,7 +81,7 @@ public static class Shared
     public static DiscordEmbedBuilder MakeEmbedFromException(this Exception ex)
     {
         DiscordEmbedBuilder ex_message = new DiscordEmbedBuilder()
-            .WithTitle($"Bot Exception [From {Program.BuildType} Build]")
+            .WithTitle($"Bot Exception [From {Program.BUILD_TYPE} Build]")
             .WithColor(DiscordColor.Red)
             .WithDescription(ex.Message)
             .AddField("Exception Type", ex.GetType().Name, true)
@@ -156,8 +156,14 @@ public static class Shared
     /// <returns></returns>
     public static async Task LogToWebhookAsync(this Exception ex, [Optional] Type? sender)
     {
+        if (Program.WebhookClient.Webhooks.Count is 0)
+        {
+            // Can't log anything
+            return;
+        }
+
         DiscordWebhookBuilder webhookBuilder = new DiscordWebhookBuilder()
-            .WithUsername($"APKonsult-{Program.BuildType}")
+            .WithUsername($"APKonsult-{Program.BUILD_TYPE}")
             .AddEmbed(ex.MakeEmbedFromException()
                 .WithFooter($"From: {sender?.Name ?? "$NO_MODULE_PASSED"}\nUptime: {PingCommand.FormatTickCount()}"));
 
@@ -173,9 +179,7 @@ public static class Shared
     /// <returns></returns>
     public static async Task<APKonsultContext?> TryGetDbContext(CancellationToken token = default)
     {
-        return DiscordClientService.DbContextFactory is null
-            ? null
-            : await DiscordClientService.DbContextFactory.CreateDbContextAsync(token);
+        return DiscordClientService.DbContextFactory is null ? null : await DiscordClientService.DbContextFactory.CreateDbContextAsync(token);
     }
 
     /// <summary>

@@ -23,16 +23,16 @@ internal class ConfigManager
     public ConfigManager()
     {
         _serializer = new();
-        LoadBotConfig().Wait();
+        LoadBotConfig();
     }
 
     /// <summary>
     /// Loads <see cref="BotConfig"/> from file.
     /// </summary>
     /// <returns></returns>
-    public async Task LoadBotConfig()
+    public void LoadBotConfig()
     {
-        BotConfigModel config = await LoadConfig(BOT_CONFIG_PATH);
+        BotConfigModel config = LoadConfig(BOT_CONFIG_PATH);
 
         if (Equals(config, null))
         {
@@ -50,20 +50,20 @@ internal class ConfigManager
     /// <returns></returns>
     public async Task SaveBotConfig(CommandContext? ctx = null)
     {
-        if (BotConfig is null)
+        if (BotConfig is not null)
         {
-            const string errorMessage = "Bot storage is null : Aborting save to prevent overwriting config";
-
-            if (ctx is not null)
-            {
-                await ctx.RespondAsync(errorMessage);
-            }
-
-            Log.Information(errorMessage);
+            SaveConfig(BOT_CONFIG_PATH, BotConfig);
             return;
         }
 
-        SaveConfig(BOT_CONFIG_PATH, BotConfig);
+        const string errorMessage = "Bot storage is null : Aborting save to prevent overwriting config";
+
+        if (ctx is not null)
+        {
+            await ctx.RespondAsync(errorMessage);
+        }
+
+        Log.Information(errorMessage);
     }
 
     public void SaveConfig(string path, BotConfigModel config)
@@ -71,35 +71,36 @@ internal class ConfigManager
         try
         {
             using StreamWriter sw = new(path);
-            using JsonTextWriter writer = new(sw);
+            using JsonTextWriter writer = new(sw)
+            {
+                Formatting = Formatting.Indented
+            };
+
             _serializer.Serialize(writer, config);
 
             Log.Information("Config saved to '{Path}'.", path);
         }
         catch (Exception ex)
         {
-            Log.Information(ex, "Error saving config to: {Path}", path);
+            Log.Error(ex, "Error saving config to: {Path}", path);
         }
     }
 
-    public async Task<BotConfigModel> LoadConfig(string path)
+    public BotConfigModel LoadConfig(string path)
     {
-        if (!File.Exists(path))
-        {
-            Log.Information("No config file found at '{Path}'. Creating one with default values.", path);
-
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-            await File.WriteAllTextAsync(path, $"{{{Environment.NewLine}}}");
-            return new BotConfigModel();
-        }
-
         try
         {
-            using StreamReader sr = new(path);
-            using JsonTextReader reader = new(sr);
-            BotConfigModel? config = _serializer.Deserialize<BotConfigModel>(reader);
+            if (!File.Exists(path))
+            {
+                Log.Information("No config file found at '{Path}'. Proceeding with default values.", path);
+                return new BotConfigModel();
+            }
 
-            if (Equals(config, null))
+            using StreamReader sReader = new(path);
+            using JsonTextReader jsonReader = new(sReader);
+            BotConfigModel? config = _serializer.Deserialize<BotConfigModel>(jsonReader);
+
+            if (config is null)
             {
                 Log.Information($"Failed to deserialize configuration file to type {nameof(BotConfigModel)} from: {{Path}}", path);
             }
@@ -110,7 +111,7 @@ internal class ConfigManager
         }
         catch (Exception ex)
         {
-            Log.Information(ex, "Error loading config.");
+            Log.Error(ex, "Error loading config.");
         }
 
         return new();

@@ -27,7 +27,7 @@ public class AliasManagerCommand
             return;
         }
 
-        UserDbEntity user = await _dbContext.FindOrCreateUserAsync(ctx.User);
+        UserDbEntity user = await _dbContext.FindOrCreateDbUserAsync(ctx.User);
 
         MessageTag? found_alias = await _dbContext.Set<MessageTag>().Where(tag => tag.Name == alias_name && tag.UserId == ctx.User.Id)
             .FirstOrDefaultAsync();
@@ -62,7 +62,7 @@ public class AliasManagerCommand
             return;
         }
 
-        UserDbEntity user = await _dbContext.FindOrCreateUserAsync(ctx.User);
+        UserDbEntity user = await _dbContext.FindOrCreateDbUserAsync(ctx.User);
 
         IQueryable<MessageTag> user_tags = _dbContext.Set<MessageTag>().Where(tag => tag.UserId == ctx.User.Id);
 
@@ -88,7 +88,7 @@ public class AliasManagerCommand
     [Command("list")]
     public async Task ListAliasesAsync(CommandContext ctx)
     {
-        UserDbEntity user = await _dbContext.FindOrCreateUserAsync(ctx.User);
+        UserDbEntity user = await _dbContext.FindOrCreateDbUserAsync(ctx.User);
 
         if (!await user.MessageAliases.AnyAsync())
         {

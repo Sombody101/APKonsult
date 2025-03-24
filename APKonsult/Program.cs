@@ -13,14 +13,14 @@ internal static class Program
 {
     public static DiscordWebhookClient WebhookClient { get; set; } = null!;
 
-    public const bool DebugBuild =
+    public const bool IS_BEBUG_GUILD =
 #if DEBUG
         true;
 #else
         false;
 #endif
 
-    public const string BuildType = DebugBuild
+    public const string BUILD_TYPE = IS_BEBUG_GUILD
             ? "Debug"
             : "Release";
 
@@ -36,31 +36,39 @@ internal static class Program
             ).MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
             .CreateLogger();
 
-        Log.Information($"Bot start @ {{Now}} ({BuildType} build)", DateTime.Now);
+        Log.Information($"Bot start @ {{Now}} ({BUILD_TYPE} build)", DateTime.Now);
 
 #if DEBUG
         // The bot has restarted itself (via command), so wait for the previous instance
         // to finish saving data
         if (args.Length > 0 && args[0] is Shared.PREVIOUS_INSTANCE_ARG)
         {
-            Log.Information("Launching from previous instance : Waiting 1000ms...");
+            Log.Information("Launching from previous instance : Waiting 1,000ms...");
             await Task.Delay(1000);
             Log.Information("Starting bot.");
         }
 #endif
 
         // Initialize webhook
-        WebhookClient = new DiscordWebhookClient();
-        Uri webhookUrl = new(ConfigManager.Manager.BotConfig.DiscordWebhookUrl);
-        await WebhookClient.AddWebhookAsync(webhookUrl);
+        string webhook = ConfigManager.Manager.BotConfig.DiscordWebhookUrl;
+
+        if (string.IsNullOrWhiteSpace(webhook))
+        {
+            Log.Error("Webook URL is not set!");
+        }
+        else
+        {
+            WebhookClient = new DiscordWebhookClient();
+            await WebhookClient.AddWebhookAsync(new Uri(webhook));
+        }
 
         // On close, save files
-        AppDomain.CurrentDomain.ProcessExit += (e, sender) =>
+        AppDomain.CurrentDomain.ProcessExit += async (e, sender) =>
         {
             Log.Information("[Exit@ {Now}] Saving all configs...", DateTime.Now);
 
             // Ensure all configs are saved
-            ConfigManager.Manager.SaveBotConfig().Wait();
+            await ConfigManager.Manager.SaveBotConfig();
         };
 
         try

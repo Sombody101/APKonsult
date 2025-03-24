@@ -27,7 +27,7 @@ public class AfkCommand
         if (afkStatus is not null)
             return;
 
-        var dbuser = await _dbContext.FindOrCreateUserAsync(ctx.User);
+        var dbuser = await _dbContext.FindOrCreateDbUserAsync(ctx.User);
 
         afkStatus = new AfkStatusEntity()
         {

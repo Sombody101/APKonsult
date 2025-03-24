@@ -1,6 +1,5 @@
-﻿#define FORCE_TRACE_LOGS
+﻿// #define FORCE_TRACE_LOGS
 
-using APKonsult.Commands.Admin;
 using APKonsult.Configuration;
 using APKonsult.Context;
 using APKonsult.EventHandlers;
@@ -70,15 +69,18 @@ internal static class APKonsultBot
             {
                 services.AddLogging(logging =>
                 {
-                    logging.SetMinimumLevel(
+                    LogLevel logLevel =
 #if DEBUG || FORCE_TRACE_LOGS
-                        LogLevel.Trace
+                        LogLevel.Trace;
 #else
-                        LogLevel.Warning
+                        LogLevel.Warning;
 #endif
-                        )
+
+                    logging.SetMinimumLevel(logLevel)
                         .AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning)
                         .AddConsole();
+
+                    Log.Information("Using log-level {LogLevel}", logLevel);
                 });
 
                 services.AddSingleton(config);
@@ -117,9 +119,34 @@ internal static class APKonsultBot
                 services.AddScoped<IRegexCache, RegexCache>();
                 services.AddScoped<IRegexService, RegexService>();
 
+                services.AddSingleton(services =>
+                {
+                    return new HttpClient()
+                    {
+                        DefaultRequestHeaders = {
+                            {
+                                "User-Agent", config.GitHubUserAgent
+                            }
+                        }
+                    };
+                });
+
                 services.ConfigureEventHandlers(builder =>
                 {
                     InitializeEvents(builder);
+
+                    MethodInfo addEventHandlersMethod = builder.GetType()
+                        .GetMethod(nameof(EventHandlingBuilder.AddEventHandlers), 1, [typeof(ServiceLifetime)]) 
+                            ?? throw new InvalidOperationException("Failed to find AddEventHandlers method.");
+
+                    foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                    {
+                        foreach (Type type in assembly.GetExportedTypes()
+                            .Where(t => t.IsAssignableTo(typeof(IEventHandler)) && !t.IsAbstract))
+                        {
+                            addEventHandlersMethod.MakeGenericMethod(type).Invoke(builder, [ServiceLifetime.Singleton]);
+                        }
+                    }
                 });
 
                 CommandsConfiguration cConfig = new()
@@ -164,8 +191,6 @@ internal static class APKonsultBot
     /// <param name="client"></param>
     private static void InitializeEvents(EventHandlingBuilder cfg)
     {
-        cfg.AddEventHandlers<TaskAutomation.BotEventLinker>(ServiceLifetime.Singleton);
-
         cfg.HandleModalSubmitted(async (client, sender) =>
         {
             await sender.Interaction.CreateResponseAsync(DiscordInteractionResponseType.DeferredMessageUpdate);
@@ -203,7 +228,7 @@ internal static class APKonsultBot
         cfg.HandleGuildMemberRemoved(async (client, args) =>
         {
             // My server
-            if (!Program.DebugBuild && args.Guild.Id == ChannelIDs.DEBUG_GUILD_ID)
+            if (!Program.IS_BEBUG_GUILD && args.Guild.Id == ChannelIDs.DEBUG_GUILD_ID)
             {
                 DiscordChannel channel = await client.GetChannelAsync(ChannelIDs.CHANNEL_GENERAL);
                 await channel.SendMessageAsync($"{args.Member.Mention} left the server!");
