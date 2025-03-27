@@ -49,7 +49,7 @@ public static class RandomNsfwCommands
             user is null
                 ? "You are"
                 : $"{user.Mention} is"
-        )} {height / 12:n0} {Qol.Pluralize("foot", "feet", height == 1)} tall!");
+        )} {height / 12f:n0} {Qol.Pluralize("foot", "feet", height == 1)} tall!");
     }
 
     [Command("weight"), Description("Fucking fatty.")]

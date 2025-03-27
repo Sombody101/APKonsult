@@ -126,7 +126,7 @@ public class LuaFunctionAttribute : Attribute
 
     public LuaFunctionAttribute(string functionName)
     {
-        FunctionName = functionName;
+        FunctionName = functionName.Camelize();
     }
 
     public class InvalidLuaFunctionException(string message)

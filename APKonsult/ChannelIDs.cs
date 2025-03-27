@@ -6,6 +6,8 @@ namespace APKonsult;
 
 internal static class ChannelIDs
 {
+    internal const string FILE_ROOT = "./0vol";
+
     private static Dictionary<string, string> cachedConstants = null!;
 
     public const ulong ABSOLUTE_ADMIN = 518296556059885599;
@@ -38,7 +40,7 @@ internal static class ChannelIDs
             }
 
             object value = field.GetValue(null)!;
-            constants[field.Name.Camelize()] = $"id:{value}";
+            constants[field.Name.ToLower().Camelize()] = $"id:{value}";
         }
 
         cachedConstants = constants;

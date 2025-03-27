@@ -22,12 +22,14 @@ public class AfkCommand
     [Command("set"), DefaultGroupCommand]
     public async ValueTask SetAfkStatusAsync(CommandContext ctx, [RemainingText][MinMaxLength(0, 70)] string status)
     {
-        var afkStatus = await _dbContext.Set<AfkStatusEntity>().FirstOrDefaultAsync(stat => stat.UserId == ctx.User.Id);
+        AfkStatusEntity? afkStatus = await _dbContext.Set<AfkStatusEntity>().FirstOrDefaultAsync(stat => stat.UserId == ctx.User.Id);
 
         if (afkStatus is not null)
+        {
             return;
+        }
 
-        var dbuser = await _dbContext.FindOrCreateDbUserAsync(ctx.User);
+        UserDbEntity dbuser = await _dbContext.FindOrCreateDbUserAsync(ctx.User);
 
         afkStatus = new AfkStatusEntity()
         {
@@ -36,7 +38,7 @@ public class AfkCommand
         };
 
         dbuser.AfkStatus = afkStatus;
-        await _dbContext.SaveChangesAsync();
+        _ = await _dbContext.SaveChangesAsync();
         await ctx.RespondAsync($"I've set your AFK status: {status}");
     }
 
@@ -50,7 +52,7 @@ public class AfkCommand
             return;
         }
 
-        var dbGuild = await _dbContext.Set<GuildDbEntity>().FirstOrDefaultAsync(guild => guild.Id == guild_id);
+        GuildDbEntity? dbGuild = await _dbContext.Set<GuildDbEntity>().FirstOrDefaultAsync(guild => guild.Id == guild_id);
 
         if (dbGuild is null)
         {

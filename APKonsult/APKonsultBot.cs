@@ -1,4 +1,4 @@
-﻿// #define FORCE_TRACE_LOGS
+﻿// #define FORCE_TRACE_LOGS // Forces trace logging, even on Release builds.
 
 using APKonsult.Configuration;
 using APKonsult.Context;
@@ -34,7 +34,7 @@ namespace APKonsult;
 
 internal static class APKonsultBot
 {
-    public const string DB_CONNECTION_STRING = "Data Source=./configs/APKonsult-bot.db";
+    public const string DB_CONNECTION_STRING = $"Data Source={ChannelIDs.FILE_ROOT}/db/APKonsult-bot.db";
 
     public static IServiceProvider Services { get; private set; } = null!;
 
@@ -124,9 +124,7 @@ internal static class APKonsultBot
                     return new HttpClient()
                     {
                         DefaultRequestHeaders = {
-                            {
-                                "User-Agent", config.GitHubUserAgent
-                            }
+                            { "User-Agent", config.GitHubUserAgent }
                         }
                     };
                 });
@@ -136,7 +134,7 @@ internal static class APKonsultBot
                     InitializeEvents(builder);
 
                     MethodInfo addEventHandlersMethod = builder.GetType()
-                        .GetMethod(nameof(EventHandlingBuilder.AddEventHandlers), 1, [typeof(ServiceLifetime)]) 
+                        .GetMethod(nameof(EventHandlingBuilder.AddEventHandlers), 1, [typeof(ServiceLifetime)])
                             ?? throw new InvalidOperationException("Failed to find AddEventHandlers method.");
 
                     foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -165,7 +163,7 @@ internal static class APKonsultBot
                     Assembly assembly = typeof(Program).Assembly;
                     cmdExt.AddCommands(assembly);
                     cmdExt.AddChecks(assembly);
-                    cmdExt.CommandErrored += HandleCommandErrored;
+                    cmdExt.CommandErrored += HandleCommandErroredAsync;
                 }, cConfig);
 
                 InteractivityConfiguration interactivityConfig = new()
@@ -235,7 +233,7 @@ internal static class APKonsultBot
             }
         });
 
-        cfg.HandleMessageCreated(HandleMessageCreated);
+        cfg.HandleMessageCreated(HandleMessageCreatedAsync);
 
         cfg.HandleGuildAvailable(async (client, sender) =>
         {
@@ -251,7 +249,7 @@ internal static class APKonsultBot
         });
     }
 
-    private static async Task HandleMessageCreated(DiscordClient client, MessageCreatedEventArgs args)
+    private static async Task HandleMessageCreatedAsync(DiscordClient client, MessageCreatedEventArgs args)
     {
         APKonsultContext db = (await Shared.TryGetDbContext())!;
 
@@ -334,7 +332,7 @@ internal static class APKonsultBot
         }
     }
 
-    private static async Task HandleCommandErrored(CommandsExtension sender, CommandErroredEventArgs e)
+    private static async Task HandleCommandErroredAsync(CommandsExtension sender, CommandErroredEventArgs e)
     {
         string commandName = e.Context.Command?.Name ?? "$NULL";
         string fullName = e.Context.Command?.FullName ?? "$NULL";

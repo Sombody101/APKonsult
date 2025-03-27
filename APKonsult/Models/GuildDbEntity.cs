@@ -25,6 +25,8 @@ public class GuildDbEntity
     public List<TrackingDbEntity> TrackingConfigurations { get; set; } = [];
 
     public List<EventAction> DefinedActions { get; set; } = [];
+
+    public List<DocketItemEntity> Docket { get; set; } = [];
 }
 
 public class GuildDbEntityConfig : IEntityTypeConfiguration<GuildDbEntity>

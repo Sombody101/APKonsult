@@ -9,7 +9,6 @@ using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
-using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
 using System.ComponentModel;
 using System.Reflection;
@@ -61,7 +60,7 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
 
     public static IEnumerable<Page> GetCommandPagesAsync(CommandContext context, Command? parentCommand = null, bool userIsAdmin = false)
     {
-        var commands = (parentCommand?.Subcommands ?? context.Extension.Commands.Values)
+        List<Command> commands = (parentCommand?.Subcommands ?? context.Extension.Commands.Values)
             .Where(c => userIsAdmin || !c.Attributes.Any(a =>
             {
                 Type attrType = a.GetType();
@@ -71,20 +70,20 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
             .OrderBy(x => x.Name)
             .ToList();
 
-        var groupedCommands = commands.GroupBy(c => c.Method?.DeclaringType?.Name ?? "Global");
+        IEnumerable<IGrouping<string, Command>> groupedCommands = commands.GroupBy(c => c.Method?.DeclaringType?.Name ?? "Global");
 
-        foreach (var group in groupedCommands)
+        foreach (IGrouping<string, Command> group in groupedCommands)
         {
-            var embed = new DiscordEmbedBuilder()
+            DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
                 .WithTitle(group.Key)
                 .WithColor(DiscordColor.CornflowerBlue);
 
-            foreach (var command in group)
+            foreach (Command? command in group)
             {
-                embed.AddField(command.Name.Titleize(), command.Description ?? "No description provided.");
+                _ = embed.AddField(command.Name.Titleize(), command.Description ?? "No description provided.");
             }
 
-            var message = new DiscordMessageBuilder()
+            DiscordMessageBuilder message = new DiscordMessageBuilder()
                 .AddEmbed(embed);
 
             yield return new Page(message, description: embed.Fields.Select(x => x.Name).Humanize());

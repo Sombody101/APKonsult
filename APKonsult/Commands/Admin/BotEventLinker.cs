@@ -39,7 +39,8 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
             return;
         }
 
-        IEnumerable<EventAction> foundActions = actions.Scripts.Where(a => a.Enabled && a.EventName == eventArgs.GetType().Name);
+        string eventName = eventArgs.GetType().Name;
+        IEnumerable<EventAction> foundActions = actions.Scripts.Where(a => a.Enabled && a.EventName == eventName);
 
         if (!foundActions.Any())
         {
@@ -94,16 +95,7 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
 
         if (cachedActions is null)
         {
-            // cachedActions = new()
-            // {
-            //     GuildId = guild.Id,
-            //     Scripts = [action]
-            // };
-            // 
-            // GuildActionCache.Add(cachedActions);
-            // return INSTALLED;
-
-            throw new Exception("what");
+            return "$NoGuildCache";
         }
 
         EventAction? deployedAction = cachedActions.Scripts.Find(a => a.ActionName == action.ActionName);
@@ -201,7 +193,7 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
         GuildActionCache.Add(gAction);
 
         // Preload all actions
-        foreach (var action in dbGuild.DefinedActions)
+        foreach (var action in dbGuild.DefinedActions.Where(a => a.Enabled))
         {
             Log.Information("Initializing action {ActionName} for guild {GuildId}", action.ActionName, action.GuildId);
             InvokeScript(action, null, guild);
