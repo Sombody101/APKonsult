@@ -4,7 +4,7 @@ services:
         container_name: apkonsult
         image: ghcr.io/sombody101/apkonsult:latest # Specify image name (for watchtower)
         volumes:
-            - /mnt/AppStorage/apkonsult-bot/configs:/app/configs/ # Config files (does the bot even use this anymore?)
+            - /mnt/AppStorage/apkonsult-bot/0vol:/app/0vol
         environment:
             # Prevents CultureNotFoundException on container start
             - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
