@@ -1,5 +1,6 @@
 ﻿// #define FORCE_TRACE_LOGS // Forces trace logging, even on Release builds.
 
+using APKonsult.Commands.Admin.TaskRunner.FunctionBindings;
 using APKonsult.Configuration;
 using APKonsult.Context;
 using APKonsult.EventHandlers;
@@ -196,32 +197,21 @@ internal static class APKonsultBot
 
         cfg.HandleGuildMemberRemoved(async (client, args) =>
         {
-            await client.SendMessageAsync(args.Guild.Channels.First().Value, $"{args.Member.Mention} has left the server!");
+            var door = ContextBindings.GetChannel(args.Guild, "door");
+
+            if (door is null)
+            {
+                Log.Warning("Failed to find a door channel in {Name}", args.Guild.Name);
+                return;
+            }
+
+            await client.SendMessageAsync(door, $"{args.Member.Mention} has left the server!");
         });
 
         cfg.HandleGuildCreated(async (client, args) =>
         {
             await Task.Run(() => Log.Information("Joined guild: {Name} (id {Id})", args.Guild.Name, args.Guild.Id));
         });
-
-#if RELEASE
-        cfg.HandleGuildMemberAdded(async (client, args) =>
-        {
-            // My server
-            if (args.Guild.Id == ChannelIDs.DEBUG_GUILD_ID)
-            {
-                var channel = await client.GetChannelAsync(ChannelIDs.CHANNEL_GENERAL);
-                await channel.SendMessageAsync($"Hey there, {args.Member.Mention}! Welcome to the server! 👋\n\n" +
-                    $"We've got two APKonsult bot instances for you to try:\n* **Testing Ground:** {(await client.GetChannelAsync(ChannelIDs.DEBUG_GUILD_ID)).Mention} " +
-                    $"- This bot has the latest features but might be a little buggy.\n* **Stable Bot:** {(await client.GetChannelAsync(ChannelIDs.CHANNEL_RELEASE)).Mention} " +
-                    $"- This bot is more stable but might have fewer features and not as up-to-date.\n" +
-                    "I've gone ahead and given you the `Bot Tester` role which allows you to send commands in these channels!");
-
-                // Add the 'Bot Tester' role
-                await args.Member.GrantRoleAsync(await args.Guild.GetRoleAsync(ChannelIDs.BOT_TESTER_ROLE)!);
-            }
-        });
-#endif
 
         cfg.HandleGuildMemberRemoved(async (client, args) =>
         {
