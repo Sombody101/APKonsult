@@ -13,6 +13,7 @@ namespace APKonsult.Commands.Admin;
 public partial class TaskAutomation
 {
     [Command("deploy"),
+        TextAlias("enable"),
         Description("Moves database task actions into the action cache to be used."),
         RequireAdminUser]
     public async Task DeployHandlersAsync(
@@ -22,7 +23,7 @@ public partial class TaskAutomation
             Description(ACTION_NAME_DESCRIPTION)]
         string actionNamesList = "all")
     {
-        GuildDbEntity? guild = await _dbContext.GetDbGuild(ctx.Guild);
+        GuildDbEntity? guild = await _dbContext.GetDbGuildAsync(ctx.Guild);
         if (guild is null)
         {
             return;
@@ -38,9 +39,9 @@ public partial class TaskAutomation
         }
         else
         {
-            var l = actionNamesList.Split(',');
+            string[] l = actionNamesList.Split(',');
 
-            foreach (var name in l)
+            foreach (string name in l)
             {
                 EventAction? action = guild.DefinedActions.Find(a => a.ActionName == name);
 
@@ -54,9 +55,9 @@ public partial class TaskAutomation
             }
         }
 
-        embed.WithTitle($"Deploying {actionsToDeploy.Count} Task Action{"s".Pluralize(actionsToDeploy.Count)}");
+        _ = embed.WithTitle($"Deploying {actionsToDeploy.Count} Task Action{"s".Pluralize(actionsToDeploy.Count)}");
 
-        foreach (var action in actionsToDeploy)
+        foreach (EventAction action in actionsToDeploy)
         {
             string status = BotEventLinker.DeployTaskAction(ctx.Guild!, action);
             (int code, long initMs) = BotEventLinker.InvokeScript(action, null, ctx.Guild);
@@ -69,7 +70,7 @@ public partial class TaskAutomation
             }
         }
 
-        await _dbContext.SaveChangesAsync();
+        _ = await _dbContext.SaveChangesAsync();
         await ctx.RespondAsync(embed);
     }
 
@@ -83,7 +84,7 @@ public partial class TaskAutomation
             Description(ACTION_NAME_DESCRIPTION)]
         string actionNamesList)
     {
-        GuildDbEntity? guild = await _dbContext.GetDbGuild(ctx.Guild);
+        GuildDbEntity? guild = await _dbContext.GetDbGuildAsync(ctx.Guild);
         if (guild is null)
         {
             return;
@@ -104,10 +105,11 @@ public partial class TaskAutomation
                 continue;
             }
 
-            string status = BotEventLinker.DisableTaskAction(action);
+            string status = BotEventLinker.KillTaskAction(action);
             _ = embed.AddField(status, $"{actionName} - `{action.EventName}`");
         }
 
+        _ = await _dbContext.SaveChangesAsync();
         await ctx.RespondAsync(embed);
     }
 
@@ -126,7 +128,7 @@ public partial class TaskAutomation
         [Description("The guild ID to place the task action into.")]
         ulong idDest)
     {
-        GuildDbEntity? sourceGuild = await _dbContext.GetDbGuild(idSource);
+        GuildDbEntity? sourceGuild = await _dbContext.GetDbGuildAsync(idSource);
 
         if (sourceGuild is null)
         {
@@ -134,7 +136,7 @@ public partial class TaskAutomation
             return;
         }
 
-        GuildDbEntity? targetGuild = await _dbContext.GetDbGuild(idDest);
+        GuildDbEntity? targetGuild = await _dbContext.GetDbGuildAsync(idDest);
 
         if (targetGuild is null)
         {

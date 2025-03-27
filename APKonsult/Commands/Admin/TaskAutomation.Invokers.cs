@@ -23,7 +23,7 @@ public partial class TaskAutomation
             Description("The action to invoke.")]
         string actionName)
     {
-        if (await _dbContext.GetDbGuild(ctx.Guild) is not GuildDbEntity dbGuild)
+        if (await _dbContext.GetDbGuildAsync(ctx.Guild) is not GuildDbEntity dbGuild)
         {
             return;
         }

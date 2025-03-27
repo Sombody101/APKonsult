@@ -40,7 +40,7 @@ public sealed partial class TaskAutomation(APKonsultContext _dbContext)
             Description(ACTION_NAME_DESCRIPTION)]
         string actionName = null!)
     {
-        if (await _dbContext.GetDbGuild(ctx.Guild) is not GuildDbEntity guild)
+        if (await _dbContext.GetDbGuildAsync(ctx.Guild) is not GuildDbEntity guild)
         {
             return;
         }
@@ -86,7 +86,7 @@ public sealed partial class TaskAutomation(APKonsultContext _dbContext)
     [Command("active"),
         Description("Shows which task actions are enabled in the task action cache."),
         RequireAdminUser]
-    public static async Task ShowActiveHandlers(
+    public static async Task ShowActiveHandlersAsync(
         CommandContext ctx,
 
         [SlashAutoCompleteProvider(typeof(ActionNameAutocomplete)),
@@ -158,17 +158,17 @@ public sealed partial class TaskAutomation(APKonsultContext _dbContext)
 
 internal static class EventTaskExtensions
 {
-    public static async Task<GuildDbEntity?> GetDbGuild(this APKonsultContext db, DiscordGuild? guild)
+    public static async Task<GuildDbEntity?> GetDbGuildAsync(this APKonsultContext db, DiscordGuild? guild)
     {
         if (guild is null)
         {
             return null;
         }
 
-        return await GetDbGuild(db, guild.Id);
+        return await GetDbGuildAsync(db, guild.Id);
     }
 
-    public static async Task<GuildDbEntity?> GetDbGuild(this APKonsultContext db, ulong guildId)
+    public static async Task<GuildDbEntity?> GetDbGuildAsync(this APKonsultContext db, ulong guildId)
     {
         return await db.Guilds
             .Include(x => x.DefinedActions)

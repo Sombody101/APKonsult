@@ -28,7 +28,7 @@ public partial class TaskAutomation
             RemainingText]
         string script = "")
     {
-        if (await _dbContext.GetDbGuild(ctx.Guild) is not GuildDbEntity guild)
+        if (await _dbContext.GetDbGuildAsync(ctx.Guild) is not GuildDbEntity guild)
         {
             return;
         }
@@ -73,7 +73,7 @@ public partial class TaskAutomation
         [Description(SCRIPT_DESCRIPTION)]
         string script)
     {
-        if (await _dbContext.GetDbGuild(ctx.Guild) is not GuildDbEntity guild)
+        if (await _dbContext.GetDbGuildAsync(ctx.Guild) is not GuildDbEntity guild)
         {
             return;
         }
@@ -102,7 +102,7 @@ public partial class TaskAutomation
             Description(ACTION_NAME_DESCRIPTION)]
         string actionName)
     {
-        if (await _dbContext.GetDbGuild(ctx.Guild) is not GuildDbEntity guild)
+        if (await _dbContext.GetDbGuildAsync(ctx.Guild) is not GuildDbEntity guild)
         {
             return;
         }
