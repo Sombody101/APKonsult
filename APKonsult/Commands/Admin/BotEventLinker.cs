@@ -32,7 +32,7 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
             // Check cache
             CheckActionCache(guild)
             // Check DB
-            ?? await CheckDbGuild(guild);
+            ?? await CheckDbGuildAsync(guild);
 
         if (actions is null)
         {
@@ -89,7 +89,8 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
     public static string DeployTaskAction(DiscordGuild guild, EventAction action)
     {
         const string INSTALLED = "Installed",
-                     UPDATED = "Updated";
+                     UPDATED = "Updated",
+                     KILLED = "Killed";
 
         GuildActionInfo? cachedActions = CheckActionCache(guild);
 
@@ -98,35 +99,47 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
             return "$NoGuildCache";
         }
 
-        EventAction? deployedAction = cachedActions.Scripts.Find(a => a.ActionName == action.ActionName);
+        // Remove from action cache
 
-        if (deployedAction is null)
+        int deployedActionIndex = cachedActions.Scripts.FindIndex(a => a.ActionName == action.ActionName);
+
+        if (deployedActionIndex is -1)
         {
             cachedActions.Scripts.Add(action);
             return INSTALLED;
         }
 
-        deployedAction.LuaScript = action.LuaScript;
-        return UPDATED;
+        // Renew the action cache, kill any old task runtimes
+
+        string status = UPDATED;
+
+        cachedActions.Scripts.RemoveAt(deployedActionIndex);
+        cachedActions.Scripts.Add(action);
+
+        int runningTaskIndex = cachedActions.ActiveRuntimes.FindIndex(r => r.Action.ActionName == action.ActionName);
+
+        if (runningTaskIndex is not -1)
+        {
+            cachedActions.ActiveRuntimes.RemoveAt(runningTaskIndex);
+            status = $"{KILLED}, {UPDATED}";
+        }
+
+        return status;
     }
 
-    public static string DisableTaskAction(EventAction action)
+    public static string KillTaskAction(EventAction action)
     {
-        var guildInfo = GuildActionCache
+        GuildActionInfo guildInfo = GuildActionCache
             .First(g => g.GuildId == action.GuildId);
 
         string result = "Removed from cache";
 
-        var runtime = guildInfo.ActiveRuntimes.Find(r => r.Action.ActionName == action.ActionName);
+        TaskRuntime? runtime = guildInfo.ActiveRuntimes.Find(r => r.Action.ActionName == action.ActionName);
         if (runtime is not null)
         {
-            guildInfo.ActiveRuntimes.Remove(runtime);
+            _ = guildInfo.ActiveRuntimes.Remove(runtime);
             result = $"{result}, LuaRuntime killed";
         }
-
-        guildInfo.Scripts
-            .First(s => s.ActionName == action.ActionName)
-            .Enabled = false;
 
         return result;
     }
@@ -143,24 +156,14 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
 
         if (guildInfo is null)
         {
-            // guildInfo = new()
-            // {
-            //     GuildId = action.GuildId,
-            //     Scripts = [action]
-            // };
-            // 
-            // GuildActionCache.Add(guildInfo);
             return new TaskRuntime(action.LuaScript);
         }
 
         TaskRuntime? cachedRuntime = guildInfo.ActiveRuntimes.Find(a => a.Action?.ActionName == action.ActionName);
 
-        if (cachedRuntime is null)
-        {
-            return new TaskRuntime(action.LuaScript);
-        }
-
-        return cachedRuntime;
+        return cachedRuntime is null
+            ? new TaskRuntime(action.LuaScript)
+            : cachedRuntime;
     }
 
     private static GuildActionInfo? CheckActionCache(DiscordGuild guild)
@@ -168,14 +171,14 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
         return GuildActionCache.Find(action => action.GuildId == guild.Id);
     }
 
-    private async ValueTask<GuildActionInfo?> CheckDbGuild(DiscordGuild guild)
+    private async ValueTask<GuildActionInfo?> CheckDbGuildAsync(DiscordGuild guild)
     {
         if (guild is null)
         {
             return null;
         }
 
-        GuildDbEntity? dbGuild = await _dbContext.GetDbGuild(guild);
+        GuildDbEntity? dbGuild = await _dbContext.GetDbGuildAsync(guild);
         if (dbGuild is null
             || dbGuild.DefinedActions is null
             || dbGuild.DefinedActions.Count == 0)
@@ -192,11 +195,11 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
         // Add to cache
         GuildActionCache.Add(gAction);
 
-        // Preload all actions
-        foreach (var action in dbGuild.DefinedActions.Where(a => a.Enabled))
+        // Preload all enabled actions
+        foreach (EventAction? action in dbGuild.DefinedActions.Where(a => a.Enabled))
         {
             Log.Information("Initializing action {ActionName} for guild {GuildId}", action.ActionName, action.GuildId);
-            InvokeScript(action, null, guild);
+            _ = InvokeScript(action, null, guild);
         }
 
         return gAction;
