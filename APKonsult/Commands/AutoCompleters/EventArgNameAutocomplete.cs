@@ -17,30 +17,30 @@ internal class EventArgNameAutocomplete : IAutoCompleteProvider
 
         bool getAll = string.IsNullOrWhiteSpace(context.UserInput);
 
-        var result = EventArgsForward
+        IEnumerable<DiscordAutoCompleteChoice> result = EventArgsForward
             .Where(x => getAll || x.Value.Contains(context.UserInput ?? string.Empty, StringComparison.OrdinalIgnoreCase))
             .Select(v => new DiscordAutoCompleteChoice(v.Value, v.Value));
 
-        DiscordAutoCompleteChoice[] l = [..result];
+        DiscordAutoCompleteChoice[] l = [.. result];
 
         return ValueTask.FromResult(result);
     }
 
     public static Dictionary<int, string> GetArgTypeNames()
     {
-        var eventArgsNamespace = typeof(DiscordEventArgs).Namespace;
-        var eventArgsAssembly = typeof(DiscordEventArgs).Assembly;
+        string? eventArgsNamespace = typeof(DiscordEventArgs).Namespace;
+        Assembly eventArgsAssembly = typeof(DiscordEventArgs).Assembly;
 
-        var eventArgsTypes = eventArgsAssembly.GetTypes()
+        List<Type> eventArgsTypes = eventArgsAssembly.GetTypes()
             .Where(type => type.Namespace == eventArgsNamespace)
             .ToList();
 
-        var guildEventArgs = new Dictionary<int, string>();
+        Dictionary<int, string> guildEventArgs = new();
 
         int ind = 0;
-        foreach (var type in eventArgsTypes)
+        foreach (Type? type in eventArgsTypes)
         {
-            var guildField = type.GetProperty("Guild", BindingFlags.Instance | BindingFlags.Public);
+            PropertyInfo? guildField = type.GetProperty("Guild", BindingFlags.Instance | BindingFlags.Public);
             if (guildField is not null && guildField.PropertyType == typeof(DiscordGuild))
             {
                 guildEventArgs.Add(ind++, type.Name);

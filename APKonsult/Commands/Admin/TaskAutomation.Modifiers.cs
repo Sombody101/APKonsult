@@ -4,6 +4,7 @@ using APKonsult.Helpers;
 using APKonsult.Models;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
+using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using System.ComponentModel;
 
@@ -14,12 +15,12 @@ public partial class TaskAutomation
     [Command("deploy"),
         Description("Moves database task actions into the action cache to be used."),
         RequireAdminUser]
-    public async Task DeployHandlers(
+    public async Task DeployHandlersAsync(
         CommandContext ctx,
 
         [SlashAutoCompleteProvider(typeof(ActionNameAutocomplete)),
             Description(ACTION_NAME_DESCRIPTION)]
-        string actionNamesList)
+        string actionNamesList = "all")
     {
         GuildDbEntity? guild = await _dbContext.GetDbGuild(ctx.Guild);
         if (guild is null)
@@ -27,24 +28,39 @@ public partial class TaskAutomation
             return;
         }
 
-        var actionNames = actionNamesList.Split(',');
+        List<EventAction> actionsToDeploy = [];
 
-        DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
-            .WithTitle($"Deploying {actionNames.Length} Task Action{"s".Pluralize(actionNames.Length)}");
+        DiscordEmbedBuilder embed = new();
 
-        foreach (string actionName in actionNames.Select(s => s.Trim()))
+        if (actionNamesList.Equals("all", StringComparison.OrdinalIgnoreCase))
         {
-            EventAction? action = guild.DefinedActions.Find(a => a.ActionName == actionName);
+            actionsToDeploy = guild.DefinedActions;
+        }
+        else
+        {
+            var l = actionNamesList.Split(',');
 
-            if (action is null)
+            foreach (var name in l)
             {
-                _ = embed.AddField("Error", $"Failed to find action task '{actionName}'");
-                continue;
-            }
+                EventAction? action = guild.DefinedActions.Find(a => a.ActionName == name);
 
+                if (action is null)
+                {
+                    _ = embed.AddField("Error", $"Failed to find action task '{name}'");
+                    continue;
+                }
+
+                actionsToDeploy.Add(action);
+            }
+        }
+
+        embed.WithTitle($"Deploying {actionsToDeploy.Count} Task Action{"s".Pluralize(actionsToDeploy.Count)}");
+
+        foreach (var action in actionsToDeploy)
+        {
             string status = BotEventLinker.DeployTaskAction(ctx.Guild!, action);
             (int code, long initMs) = BotEventLinker.InvokeScript(action, null, ctx.Guild);
-            _ = embed.AddField(status, $"{actionName} - `{action.EventName}` ({GBConverter.FormatSizeFromBytes(action.LuaScript.Length)})\n" +
+            _ = embed.AddField(status, $"{action.ActionName} - `{action.EventName}` ({GBConverter.FormatSizeFromBytes(action.LuaScript.Length)})\n" +
                 $"Init returned {code} and took {initMs}ms.");
 
             if (code is 0)
@@ -53,13 +69,14 @@ public partial class TaskAutomation
             }
         }
 
+        await _dbContext.SaveChangesAsync();
         await ctx.RespondAsync(embed);
     }
 
     [Command("disable"),
         Description("Uninstalls/kills a running Lua task action."),
         RequireBotOwner]
-    public async Task DisableHandlers(
+    public async Task DisableHandlersAsync(
         CommandContext ctx,
 
         [SlashAutoCompleteProvider(typeof(ActionNameAutocomplete)),
@@ -72,7 +89,7 @@ public partial class TaskAutomation
             return;
         }
 
-        var actionNames = actionNamesList.Split(',');
+        string[] actionNames = actionNamesList.Split(',');
 
         DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
             .WithTitle($"Disabling {actionNames.Length} Task Action{"s".Pluralize(actionNames.Length)}");
@@ -92,5 +109,53 @@ public partial class TaskAutomation
         }
 
         await ctx.RespondAsync(embed);
+    }
+
+    [Command("copy"),
+        TextAlias("cp")]
+    public async Task CopyHandlerAsync(
+        CommandContext ctx,
+
+        [Description(ACTION_NAME_DESCRIPTION),
+            SlashAutoCompleteProvider(typeof(ActionNameAutocomplete))]
+        string actionName,
+
+        [Description("The guild ID to take the task action from.")]
+        ulong idSource,
+
+        [Description("The guild ID to place the task action into.")]
+        ulong idDest)
+    {
+        GuildDbEntity? sourceGuild = await _dbContext.GetDbGuild(idSource);
+
+        if (sourceGuild is null)
+        {
+            await ctx.RespondAsync($"There is no guild in the DB with the ID {idSource} (no source)");
+            return;
+        }
+
+        GuildDbEntity? targetGuild = await _dbContext.GetDbGuild(idDest);
+
+        if (targetGuild is null)
+        {
+            await ctx.RespondAsync($"There is no guild in the DB with the ID {idSource} (no dest)");
+            return;
+        }
+
+        EventAction? action = sourceGuild.DefinedActions
+            .Find(d => d.ActionName == actionName);
+
+        if (action is null)
+        {
+            await ctx.RespondAsync($"Failed to find action '{actionName}' in the source guild.");
+            return;
+        }
+
+        targetGuild.DefinedActions.Add(action);
+        _ = await _dbContext.SaveChangesAsync();
+
+        await ctx.RespondAsync($"Cloned action `{actionName} ({action.EventName})` from " +
+            $"{(await ctx.Client.GetGuildAsync(idSource)).Name} to " +
+            (await ctx.Client.GetGuildAsync(idDest)).Name);
     }
 }

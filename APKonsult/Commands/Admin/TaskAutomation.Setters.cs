@@ -17,16 +17,16 @@ public partial class TaskAutomation
         CommandContext ctx,
 
         [SlashAutoCompleteProvider(typeof(ActionNameAutocomplete)),
-                Description(ACTION_NAME_DESCRIPTION)]
-            string actionName,
+            Description(ACTION_NAME_DESCRIPTION)]
+        string actionName,
 
         [SlashAutoCompleteProvider(typeof(EventArgNameAutocomplete)),
-                Description(EVENT_NAME_DESCRIPTION)]
-            string eventName,
+            Description(EVENT_NAME_DESCRIPTION)]
+        string eventName,
 
         [Description(SCRIPT_DESCRIPTION),
             RemainingText]
-        string script)
+        string script = "")
     {
         if (await _dbContext.GetDbGuild(ctx.Guild) is not GuildDbEntity guild)
         {

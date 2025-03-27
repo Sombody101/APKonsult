@@ -139,8 +139,8 @@ public sealed partial class TaskAutomation(APKonsultContext _dbContext)
             }
             else
             {
-                status = action.Enabled 
-                    ? "Deployed" 
+                status = action.Enabled
+                    ? "Deployed"
                     : "Disabled";
             }
 
@@ -160,13 +160,19 @@ internal static class EventTaskExtensions
 {
     public static async Task<GuildDbEntity?> GetDbGuild(this APKonsultContext db, DiscordGuild? guild)
     {
-        return guild is null
-            ? null
-            : await db.Guilds
+        if (guild is null)
+        {
+            return null;
+        }
+
+        return await GetDbGuild(db, guild.Id);
+    }
+
+    public static async Task<GuildDbEntity?> GetDbGuild(this APKonsultContext db, ulong guildId)
+    {
+        return await db.Guilds
             .Include(x => x.DefinedActions)
-            .FirstOrDefaultAsync(x => x.Id == guild.Id) is GuildDbEntity dbGuild
-                ? dbGuild
-                : null;
+            .FirstOrDefaultAsync(x => x.Id == guildId);
     }
 
     public static EventAction? GetActionFromName(this GuildDbEntity? guild, string actionName)

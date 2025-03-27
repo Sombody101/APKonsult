@@ -37,7 +37,7 @@ public static class HumanizerCommand
     {
         try
         {
-            var embed = new DiscordEmbedBuilder()
+            DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
                 .WithColor(DiscordColor.SpringGreen)
                 .AddField("Humanized Text", $"```\n{text.Humanize(casing)}\n```");
 

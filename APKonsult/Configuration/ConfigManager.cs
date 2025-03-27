@@ -8,7 +8,7 @@ internal class ConfigManager
 {
     public static readonly ConfigManager Manager = new();
 
-    private const string BOT_CONFIG_PATH = $"./configs/bot-config.json";
+    private const string BOT_CONFIG_PATH = $"{ChannelIDs.FILE_ROOT}/configs/bot-config.json";
 
     private readonly JsonSerializer _serializer;
 

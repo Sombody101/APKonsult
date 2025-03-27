@@ -10,13 +10,13 @@ internal static class LogBinding
         Log.Information(Logify(input), objects);
     }
 
-    [LuaFunction("logWarning")]
+    [LuaFunction(nameof(LogWarning))]
     public static void LogWarning(string input, params object[] objects)
     {
         Log.Warning(Logify(input), objects);
     }
 
-    [LuaFunction("logError")]
+    [LuaFunction(nameof(LogError))]
     public static void LogError(string input, params object[] objects)
     {
         Log.Error(Logify(input), objects);

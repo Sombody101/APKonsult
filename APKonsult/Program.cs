@@ -29,10 +29,10 @@ internal static class Program
         Log.Logger = new LoggerConfiguration()
             .WriteTo.Console()
             .WriteTo.File(
-                "logs/bot.log",
+                $"{ChannelIDs.FILE_ROOT}/logs/blog-.log",
                 rollingInterval: RollingInterval.Day,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
-                restrictedToMinimumLevel: LogEventLevel.Information
+                restrictedToMinimumLevel: LogEventLevel.Verbose
             ).MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
             .CreateLogger();
 
@@ -63,12 +63,12 @@ internal static class Program
         }
 
         // On close, save files
-        AppDomain.CurrentDomain.ProcessExit += async (e, sender) =>
+        AppDomain.CurrentDomain.ProcessExit += (e, sender) =>
         {
-            Log.Information("[Exit@ {Now}] Saving all configs...", DateTime.Now);
+            Log.Information("[Exit@ {Now}] Bot shutting down.", DateTime.Now);
 
             // Ensure all configs are saved
-            await ConfigManager.Manager.SaveBotConfig();
+            // await ConfigManager.Manager.SaveBotConfig();
         };
 
         try
@@ -76,13 +76,12 @@ internal static class Program
             // Start the bot
             await APKonsultBot.RunAsync();
         }
+        catch (TaskCanceledException)
+        {
+            // Ignore
+        }
         catch (Exception e)
         {
-            if (e is TaskCanceledException)
-            {
-                return;
-            }
-
             await e.LogToWebhookAsync();
             Environment.Exit(69);
         }

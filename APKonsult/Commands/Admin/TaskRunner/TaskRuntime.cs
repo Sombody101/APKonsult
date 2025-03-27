@@ -58,6 +58,11 @@ public sealed class TaskRuntime
 
             return (int)result.Number;
         }
+        catch (ScriptRuntimeException sEx)
+        {
+            Log.Error(sEx, "Lua Runtime exception failed for {ActionName}, for guild {GuildId}", Action.ActionName, Action.GuildId);
+            throw;
+        }
         catch (Exception ex)
         {
             Log.Error(ex, "Lua task script failed.");
@@ -90,6 +95,11 @@ public sealed class TaskRuntime
             InvokeCount++;
 
             return (int)result.Number;
+        }
+        catch (ScriptRuntimeException sEx)
+        {
+            Log.Error(sEx, "Lua Runtime exception failed for callback {ActionName}, for guild {GuildId}", Action.ActionName, Action.GuildId);
+            throw;
         }
         catch (Exception ex)
         {
@@ -134,11 +144,11 @@ public sealed class TaskRuntime
 
         luaScript.Globals["await"] = (Func<DynValue, DynValue>)(value =>
         {
-            return AwaitTask(value).Result;
+            return AwaitTaskAsync(value).Result;
         });
     }
 
-    private async Task<DynValue> AwaitTask(DynValue taskDynValue)
+    private async Task<DynValue> AwaitTaskAsync(DynValue taskDynValue)
     {
         if (taskDynValue.Type is not DataType.UserData)
         {
@@ -161,7 +171,6 @@ public sealed class TaskRuntime
                 return DynValue.Nil;
             }
 
-            Type resultType = task.GetType().GetGenericArguments()[0]; // Get the result type (Guild)
             PropertyInfo? resultProperty = task.GetType().GetProperty("Result");
 
             if (resultProperty is null)

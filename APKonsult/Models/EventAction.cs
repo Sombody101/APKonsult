@@ -24,4 +24,9 @@ public class EventAction
     public bool Enabled { get; set; } = false;
 
     public GuildDbEntity Guild { get; set; }
+
+    public override string ToString()
+    {
+        return $"[act:{ActionName}, event:{EventName}]";
+    }
 }
