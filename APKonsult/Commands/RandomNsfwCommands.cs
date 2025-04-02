@@ -29,22 +29,22 @@ public static class RandomNsfwCommands
         [Description("The user you want to measure...")]
         DiscordUser? user = null)
     {
-        var length = Random.Shared.Next(0, 35);
+        int length = Random.Shared.Next(0, 35);
         await ctx.RespondAsync($"8{new string('=', length / 2)}D\n{(
             user is null
                 ? "Your"
                 : $"{user.Mention}'s"
-            )} penis is {length} inch{"es".Pluralize(length)} long!");
+            )} penis is {length} {"inch".Pluralize(length)} long!");
     }
 
     [Command("height"), Description("See how tall you are!")]
     public static async ValueTask HeightAsync(
         CommandContext ctx,
-        
+
         [Description("Ths user you want to either humble or compliment. The choice is not yours.")]
         DiscordUser? user = null)
     {
-        var height = Random.Shared.Next(50, 95);
+        int height = Random.Shared.Next(50, 95);
         await ctx.RespondAsync($"{(
             user is null
                 ? "You are"
@@ -59,7 +59,7 @@ public static class RandomNsfwCommands
         [Description("The user you want to insult.")]
         DiscordUser? user = null)
     {
-        var weight = Random.Shared.NextDouble() * 500;
+        double weight = Random.Shared.NextDouble() * 500;
         await ctx.RespondAsync($"{(
             user is null
                 ? "You are"

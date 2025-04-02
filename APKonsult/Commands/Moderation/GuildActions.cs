@@ -24,10 +24,12 @@ public class GuildActions
     [Command("set"), DebugOnly]
     public async ValueTask SetGuildWelcomeMessageAsync(CommandContext ctx, [RemainingText] string message)
     {
-        var parsedMessage = await new Markup(message).ApplyMarkupAsync(ctx);
+        string? parsedMessage = await new Markup(message).ApplyMarkupAsync(ctx);
 
         if (parsedMessage is null)
+        {
             return;
+        }
 
         await ctx.RespondAsync(new DiscordEmbedBuilder()
             .WithTitle("Final output")
@@ -58,9 +60,9 @@ public class GuildActions
 
         public async ValueTask<string?> ApplyMarkupAsync(CommandContext ctx)
         {
-            var output = new StringBuilder();
-            var tagBuffer = new StringBuilder();
-            var errors = new List<string>();
+            StringBuilder output = new();
+            StringBuilder tagBuffer = new();
+            List<string> errors = new();
 
             bool collectingTag = false;
             char c;
@@ -72,7 +74,7 @@ public class GuildActions
                 {
                     if (peek() is '{') // Escaped tag
                     {
-                        output.Append(c)
+                        _ = output.Append(c)
                             .Append(consume());
                         continue;
                     }
@@ -89,7 +91,7 @@ public class GuildActions
                             continue;
                         }
 
-                        output.Append(c)
+                        _ = output.Append(c)
                             .Append(consume());
 
                         continue;
@@ -99,8 +101,8 @@ public class GuildActions
 
                     try
                     {
-                        var resolvedTag = ResolveTag(ctx, tagBuffer.ToString());
-                        output.Append(resolvedTag);
+                        string? resolvedTag = ResolveTag(ctx, tagBuffer.ToString());
+                        _ = output.Append(resolvedTag);
                     }
                     catch (InvalidTagException tagErr)
                     {
@@ -108,22 +110,22 @@ public class GuildActions
                     }
                     finally
                     {
-                        tagBuffer.Clear();
+                        _ = tagBuffer.Clear();
                     }
                 }
                 else if (collectingTag)
                 {
-                    tagBuffer.Append(c);
+                    _ = tagBuffer.Append(c);
                 }
                 else
                 {
-                    output.Append(c);
+                    _ = output.Append(c);
                 }
             }
 
             if (errors.Count is not 0)
             {
-                var errorEmbed = new DiscordEmbedBuilder()
+                DiscordEmbedBuilder errorEmbed = new DiscordEmbedBuilder()
                     .WithTitle("Markup Error!")
                     .WithColor(DiscordColor.Red)
                     .WithDescription(errors.Count > 50
@@ -139,41 +141,50 @@ public class GuildActions
 
         public static string TestTags(CommandContext ctx)
         {
-            var output = new StringBuilder();
+            StringBuilder output = new();
 
-            foreach (var key in markupTags.Select(kvp => kvp.Key))
-                output.AppendLine($"1. `{key}`: {ResolveTag(ctx, key)}");
+            foreach (string? key in markupTags.Select(kvp => kvp.Key))
+            {
+                _ = output.AppendLine($"1. `{key}`: {ResolveTag(ctx, key)}");
+            }
 
             return output.ToString();
         }
 
         private char peek(int skip = 1)
         {
-            if (index + skip > text.Length)
-                return Null;
-
-            return text[index];
+            return index + skip > text.Length ? Null : text[index];
         }
 
         private char consume()
-            => text[index++];
+        {
+            return text[index++];
+        }
 
         private static string? ResolveTag(CommandContext ctx, string tag)
         {
             if (string.IsNullOrWhiteSpace(tag))
+            {
                 throw new InvalidTagException();
+            }
 
-            var result = markupTags.FirstOrDefault(x => x.Key == tag).Value;
+            object? result = markupTags.FirstOrDefault(x => x.Key == tag).Value;
 
             if (result is null)
+            {
                 goto UnknownTag;
+            }
 
             if (result is Handler handler)
+            {
                 return handler(ctx);
+            }
             else if (result is string stringResult)
+            {
                 return stringResult;
+            }
 
-            UnknownTag:
+        UnknownTag:
             throw new InvalidTagException(tag);
         }
 

@@ -1,4 +1,6 @@
-﻿namespace APKonsult;
+﻿using Humanizer;
+
+namespace APKonsult;
 
 public static class Qol
 {
@@ -17,16 +19,16 @@ public static class Qol
     }
 
     /// <summary>
-    /// Return <paramref name="plural"/> if <paramref name="go"/> is <see langword="true"/>, otherwise <see cref="string.Empty"/>
+    /// Return <paramref name="text"/> if <paramref name="go"/> is <see langword="true"/>, otherwise <see cref="string.Empty"/>
     /// </summary>
-    /// <param name="plural"></param>
+    /// <param name="text"></param>
     /// <param name="go"></param>
     /// <returns></returns>
-    public static string Pluralize(this string plural, bool go)
+    public static string Pluralize(this string text, bool go)
     {
         return go
-            ? plural
-            : string.Empty;
+            ? text.Pluralize()
+            : text;
     }
 
     /// <summary>
@@ -43,14 +45,14 @@ public static class Qol
     }
 
     /// <summary>
-    /// Return <paramref name="plural"/> if <paramref name="num"/> is not equal to <see langword="1"/>, otherwise <see cref="string.Empty"/>
+    /// Return <paramref name="text"/> if <paramref name="num"/> is not equal to <see langword="1"/>, otherwise <see cref="string.Empty"/>
     /// </summary>
-    /// <param name="plural"></param>
+    /// <param name="text"></param>
     /// <param name="num"></param>
     /// <returns></returns>
-    public static string Pluralize(this string plural, int num)
+    public static string Pluralize(this string text, int num)
     {
-        return plural.Pluralize(num is not 1);
+        return text.Pluralize(num is not 1);
     }
 
     /// <summary>

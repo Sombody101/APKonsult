@@ -9,14 +9,14 @@ namespace APKonsult.CommandChecks;
 
 public class EnsureDBEntitiesCheck : IContextCheck<UnconditionalCheckAttribute>
 {
-    private IDbContextFactory<APKonsultContext> _contextFactory;
+    private readonly IDbContextFactory<APKonsultContext> _contextFactory;
 
     public EnsureDBEntitiesCheck(IDbContextFactory<APKonsultContext> dbContextFactory)
     {
         _contextFactory = dbContextFactory;
     }
 
-    public async ValueTask<string?> ExecuteCheckAsync(UnconditionalCheckAttribute _, CommandContext context)
+    public async ValueTask<string?> ExecuteCheckAsync(UnconditionalCheckAttribute __, CommandContext context)
     {
         DiscordUser user = context.User;
 
@@ -28,7 +28,7 @@ public class EnsureDBEntitiesCheck : IContextCheck<UnconditionalCheckAttribute>
             Username = user.Username,
         };
 
-        await dbContext.Users.Upsert(userdbEntity)
+        _ = await dbContext.Users.Upsert(userdbEntity)
             .On(x => x.Id)
             .NoUpdate()
             .RunAsync();
@@ -40,12 +40,12 @@ public class EnsureDBEntitiesCheck : IContextCheck<UnconditionalCheckAttribute>
 
         GuildDbEntity guildDbEntity = new(context.Guild.Id);
 
-        await dbContext.Guilds.Upsert(guildDbEntity)
+        _ = await dbContext.Guilds.Upsert(guildDbEntity)
             .On(x => x.Id)
             .NoUpdate()
             .RunAsync();
 
-        await dbContext.SaveChangesAsync();
+        _ = await dbContext.SaveChangesAsync();
         return null;
     }
 }

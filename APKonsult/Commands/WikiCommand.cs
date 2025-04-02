@@ -23,6 +23,6 @@ internal static class WikiCommand
             .MakeWide()
             .WithColor();
 
-        await ctx.Channel.SendMessageAsync(embed);
+        _ = await ctx.Channel.SendMessageAsync(embed);
     }
 }

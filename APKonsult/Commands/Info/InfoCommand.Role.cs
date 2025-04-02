@@ -18,7 +18,7 @@ public partial class InfoCommand
         MadeBy(Creator.Lunar)]
     public static async Task RoleInfoAsync(CommandContext context, DiscordRole role)
     {
-        var embedBuilder = new DiscordEmbedBuilder()
+        DiscordEmbedBuilder embedBuilder = new()
         {
             Title = $"Role Info for {role.Name}",
             Author = new()
@@ -32,15 +32,15 @@ public partial class InfoCommand
                 : role.Color
         };
 
-        embedBuilder.AddField("Color", role.Color.ToString(), true);
-        embedBuilder.AddField("Created At", Formatter.Timestamp(role.CreationTimestamp.UtcDateTime, TimestampFormat.LongDateTime), true);
-        embedBuilder.AddField("Hoisted", role.IsHoisted.ToString(), true);
-        embedBuilder.AddField("Is Managed", role.IsManaged.ToString(), true);
-        embedBuilder.AddField("Is Mentionable", role.IsMentionable.ToString(), true);
-        embedBuilder.AddField("Role Id", Formatter.InlineCode(role.Id.ToString(CultureInfo.InvariantCulture)), true);
-        embedBuilder.AddField("Role Name", role.Name, true);
-        embedBuilder.AddField("Role Position", role.Position.ToString("N0", CultureInfo.InvariantCulture), true);
-        embedBuilder.AddField("Permissions", role.Permissions == DiscordPermissions.None
+        _ = embedBuilder.AddField("Color", role.Color.ToString(), true);
+        _ = embedBuilder.AddField("Created At", Formatter.Timestamp(role.CreationTimestamp.UtcDateTime, TimestampFormat.LongDateTime), true);
+        _ = embedBuilder.AddField("Hoisted", role.IsHoisted.ToString(), true);
+        _ = embedBuilder.AddField("Is Managed", role.IsManaged.ToString(), true);
+        _ = embedBuilder.AddField("Is Mentionable", role.IsMentionable.ToString(), true);
+        _ = embedBuilder.AddField("Role Id", Formatter.InlineCode(role.Id.ToString(CultureInfo.InvariantCulture)), true);
+        _ = embedBuilder.AddField("Role Name", role.Name, true);
+        _ = embedBuilder.AddField("Role Position", role.Position.ToString("N0", CultureInfo.InvariantCulture), true);
+        _ = embedBuilder.AddField("Permissions", role.Permissions == DiscordPermissions.None
             ? "No permissions."
             : role.Permissions.ToString() + ".", false);
 

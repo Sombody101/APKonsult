@@ -18,7 +18,7 @@ public class RequireAdminUserCheck : IContextCheck<RequireAdminUserAttribute>
     {
         Models.UserDbEntity? user = await _dbContext.Users.FindAsync(context.User.Id);
 
-        return user is null || (!user.IsBotAdmin && !RequireOwnerCheck.IsOwner(context)) 
+        return user is null || (!user.IsBotAdmin && !RequireOwnerCheck.IsOwner(context))
             ? "You need to be a bot administrator!"
             : null;
     }

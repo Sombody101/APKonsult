@@ -19,10 +19,9 @@ public class RequireDebugOnlyCheck : IContextCheck<DebugOnlyAttribute>
 #if !DEBUG
         return "This command can only be run on the Debug version of APKonsult!";
 #else
-        if (await new RequireAdminUserCheck(_dbContext).ExecuteCheckAsync(null, context) is not null)
-            return "You need to be a bot administrator to use this command while it's in the Debug stage!";
-
-        return null;
+        return await new RequireAdminUserCheck(_dbContext).ExecuteCheckAsync(null, context) is not null
+            ? "You need to be a bot administrator to use this command while it's in the Debug stage!"
+            : null;
 #endif
     }
 }

@@ -8,16 +8,15 @@ public class RequireOwnerCheck : IContextCheck<RequireBotOwnerAttribute>
 {
     public ValueTask<string?> ExecuteCheckAsync(RequireBotOwnerAttribute attribute, CommandContext context)
     {
-        if (!IsOwner(context))
-            return ValueTask.FromResult<string?>("You need to be a bot owner!");
-
-        return ValueTask.FromResult<string?>(null);
+        return !IsOwner(context) 
+            ? ValueTask.FromResult<string?>("You need to be a bot owner!") 
+            : ValueTask.FromResult<string?>(null);
     }
 
     public static bool IsOwner(CommandContext context)
     {
-        var app = context.Client.CurrentApplication;
-        var me = context.Client.CurrentUser;
+        DSharpPlus.Entities.DiscordApplication? app = context.Client.CurrentApplication;
+        DSharpPlus.Entities.DiscordUser me = context.Client.CurrentUser;
 
         bool isOwner = app is not null
             ? app!.Owners!.Any(x => x.Id == context.User.Id)

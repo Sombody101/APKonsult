@@ -12,28 +12,28 @@ public static class HumanizerCommand
     [Command("text"), DefaultGroupCommand]
     public static async ValueTask HumanizeAsync(CommandContext ctx, [RemainingText] string text)
     {
-        await ctx.RespondAsync(await HumanizeText(text));
+        await ctx.RespondAsync(await HumanizeTextAsync(text));
     }
 
     [Command("title")]
     public static async ValueTask HumanizeTitleAsync(CommandContext ctx, [RemainingText] string text)
     {
-        await ctx.RespondAsync(await HumanizeText(text, LetterCasing.Title));
+        await ctx.RespondAsync(await HumanizeTextAsync(text, LetterCasing.Title));
     }
 
     [Command("caps")]
     public static async ValueTask HumanizeCapsAsync(CommandContext ctx, [RemainingText] string text)
     {
-        await ctx.RespondAsync(await HumanizeText(text, LetterCasing.AllCaps));
+        await ctx.RespondAsync(await HumanizeTextAsync(text, LetterCasing.AllCaps));
     }
 
     [Command("lower"), TextAlias("low")]
     public static async ValueTask HumanizeLowerAsync(CommandContext ctx, [RemainingText] string text)
     {
-        await ctx.RespondAsync(await HumanizeText(text, LetterCasing.LowerCase));
+        await ctx.RespondAsync(await HumanizeTextAsync(text, LetterCasing.LowerCase));
     }
 
-    private static async ValueTask<DiscordEmbedBuilder> HumanizeText(string text, LetterCasing casing = LetterCasing.Sentence)
+    private static async ValueTask<DiscordEmbedBuilder> HumanizeTextAsync(string text, LetterCasing casing = LetterCasing.Sentence)
     {
         try
         {

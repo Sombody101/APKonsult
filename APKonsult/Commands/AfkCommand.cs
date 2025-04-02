@@ -42,7 +42,7 @@ public class AfkCommand
         await ctx.RespondAsync($"I've set your AFK status: {status}");
     }
 
-    public async ValueTask ListAfkUsers(CommandContext ctx, [Optional] ulong? guild_id)
+    public async ValueTask ListAfkUsersAsync(CommandContext ctx, [Optional] ulong? guild_id)
     {
         guild_id ??= ctx.Guild?.Id;
 

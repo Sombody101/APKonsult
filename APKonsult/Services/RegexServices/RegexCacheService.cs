@@ -31,8 +31,8 @@ public class RegexCache : IRegexCache
 
         try
         {
-            var cachedTags = GetFromCache(guildId);
-            cachedTags.Add(regexName);
+            SortedSet<string> cachedTags = GetFromCache(guildId);
+            _ = cachedTags.Add(regexName);
         }
         finally
         {
@@ -46,8 +46,8 @@ public class RegexCache : IRegexCache
 
         try
         {
-            var cachedTags = GetFromCache(guildId);
-            cachedTags.Remove(regexName);
+            SortedSet<string> cachedTags = GetFromCache(guildId);
+            _ = cachedTags.Remove(regexName);
         }
         finally
         {
@@ -61,7 +61,7 @@ public class RegexCache : IRegexCache
 
         try
         {
-            _cache.Set(GetCacheKey(guildId), new SortedSet<string>(tags),
+            _ = _cache.Set(GetCacheKey(guildId), new SortedSet<string>(tags),
                 new MemoryCacheEntryOptions { AbsoluteExpiration = DateTimeOffset.Now.AddMinutes(10) });
         }
         finally
@@ -73,15 +73,17 @@ public class RegexCache : IRegexCache
     public ImmutableArray<string> Search(ulong guildId, string partialName, int? maxResults = null)
     {
         if (string.IsNullOrWhiteSpace(partialName))
+        {
             return ImmutableArray<string>.Empty;
+        }
 
         _cacheLock.EnterReadLock();
 
         try
         {
-            var cachedTags = GetFromCache(guildId);
+            SortedSet<string> cachedTags = GetFromCache(guildId);
 
-            var results = cachedTags
+            IOrderedEnumerable<string> results = cachedTags
                 .Where(x => x.Contains(partialName, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(x => x);
 
@@ -96,8 +98,12 @@ public class RegexCache : IRegexCache
     }
 
     private SortedSet<string> GetFromCache(ulong guildId)
-        => _cache.Get<SortedSet<string>>(GetCacheKey(guildId)) ?? [];
+    {
+        return _cache.Get<SortedSet<string>>(GetCacheKey(guildId)) ?? [];
+    }
 
     private static object GetCacheKey(ulong guildId)
-        => new { guildId, Target = "Regex" };
+    {
+        return new { guildId, Target = "Regex" };
+    }
 }

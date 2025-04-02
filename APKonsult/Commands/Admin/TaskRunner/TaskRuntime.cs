@@ -121,7 +121,7 @@ public sealed class TaskRuntime
         luaScript.Options.CheckThreadAccess = false;
         luaScript.Options.ScriptLoader = null;
 
-        luaScript.Globals.RegisterConstants();
+        _ = luaScript.Globals.RegisterConstants();
         luaScript.Globals["ids"] = BindingsManager.GetLuaConstants(luaScript);
         luaScript.Globals["client"] = DiscordClientService.StaticInstance!.Client;
         luaScript.Globals["action"] = Action;

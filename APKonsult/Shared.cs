@@ -42,7 +42,7 @@ public static class Shared
     /// <param name="user"></param>
     /// <param name="_dbContext"></param>
     /// <returns></returns>
-    public static async Task<bool> IsAdmin(this DiscordUser user, APKonsultContext _dbContext)
+    public static async Task<bool> IsAdminAsync(this DiscordUser user, APKonsultContext _dbContext)
     {
         Models.UserDbEntity? dbUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.IsBotAdmin && u.Id == user.Id);
 
@@ -54,7 +54,7 @@ public static class Shared
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    public static async Task<bool> IsBotTester(this DiscordUser user)
+    public static async Task<bool> IsBotTesterAsync(this DiscordUser user)
     {
         if (DiscordClientService.StaticInstance?.Client.Guilds.TryGetValue(ChannelIDs.DEBUG_GUILD_ID, out DiscordGuild? debugGuild) is not true)
         {
@@ -135,7 +135,7 @@ public static class Shared
     /// <param name="ex"></param>
     /// <param name="sender"></param>
     /// <returns></returns>
-    public static async Task PrintException(this Exception ex, [Optional] Type? sender)
+    public static async Task PrintExceptionAsync(this Exception ex, [Optional] Type? sender)
     {
         Log.Error(ex, ex.Message);
         await ex.LogToWebhookAsync(sender);
@@ -177,7 +177,7 @@ public static class Shared
     /// </summary>
     /// <param name="token"></param>
     /// <returns></returns>
-    public static async Task<APKonsultContext?> TryGetDbContext(CancellationToken token = default)
+    public static async Task<APKonsultContext?> TryGetDbContextAsync(CancellationToken token = default)
     {
         return DiscordClientService.DbContextFactory is null ? null : await DiscordClientService.DbContextFactory.CreateDbContextAsync(token);
     }

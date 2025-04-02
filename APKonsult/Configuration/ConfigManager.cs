@@ -48,7 +48,7 @@ internal class ConfigManager
     /// <param name="path"></param>
     /// <param name="ctx"></param>
     /// <returns></returns>
-    public async Task SaveBotConfig(CommandContext? ctx = null)
+    public async Task SaveBotConfigAsync(CommandContext? ctx = null)
     {
         if (BotConfig is not null)
         {

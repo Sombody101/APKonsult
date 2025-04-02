@@ -50,11 +50,11 @@ public static class UserManager
 
     public static async Task RenameUserAsync(CommandContext ctx, ulong userid, [RemainingText] string name)
     {
-        var user = await ctx.Client.GetUserAsync(userid);
+        DiscordUser? user = await ctx.Client.GetUserAsync(userid);
 
         if (user is null)
         {
-            ctx.RespondAsync("Failed to find that user!");
+            _ = ctx.RespondAsync("Failed to find that user!");
             return;
         }
 

@@ -66,23 +66,13 @@ public class ContentTrackerCommand
             .WithTitle("Regex tracking pattern created!")
             .AddField("Name", result.Name);
 
-        if (result.SourceChannelId is not 0)
-        {
-            _ = embed.AddField("Source Channel", $"{result.SourceChannelId} ({ctx.Guild.GetChannelAsync(result.SourceChannelId).Result.Mention})");
-        }
-        else
-        {
-            _ = embed.AddField("Source Channel", "Unset (Tracker disabled)");
-        }
+        _ = result.SourceChannelId is not 0
+            ? embed.AddField("Source Channel", $"{result.SourceChannelId} ({ctx.Guild.GetChannelAsync(result.SourceChannelId).Result.Mention})")
+            : embed.AddField("Source Channel", "Unset (Tracker disabled)");
 
-        if (result.ReportChannelId is not 0)
-        {
-            _ = embed.AddField("Report Channel", $"{result.ReportChannelId} ({ctx.Guild.GetChannelAsync(result.ReportChannelId).Result.Mention})");
-        }
-        else
-        {
-            _ = embed.AddField("Report Channel", "Unset (Tracker disabled)");
-        }
+        _ = result.ReportChannelId is not 0
+            ? embed.AddField("Report Channel", $"{result.ReportChannelId} ({ctx.Guild.GetChannelAsync(result.ReportChannelId).Result.Mention})")
+            : embed.AddField("Report Channel", "Unset (Tracker disabled)");
 
         _ = embed.AddField("Regex Patthen", $"```regex\n{result.RegexPattern}\n```");
 
@@ -305,7 +295,7 @@ public class ContentTrackerCommand
 
         await ctx.Interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, modal);
 
-        var response = await _interactivity.WaitForModalAsync(modalName);
+        InteractivityResult<DSharpPlus.EventArgs.ModalSubmittedEventArgs> response = await _interactivity.WaitForModalAsync(modalName);
 
         if (response.TimedOut)
         {
@@ -316,28 +306,28 @@ public class ContentTrackerCommand
         StringBuilder errors = new();
 
         // Validate channels
-        if (!ulong.TryParse(response.Result.Values[targetId], out var target_id))
+        if (!ulong.TryParse(response.Result.Values[targetId], out ulong target_id))
         {
             _ = errors.AppendLine("The target channel ID must be a number!");
         }
 
         if (target_id is not 0)
         {
-            var channel = await ctx.Guild.GetChannelAsync(target_id);
+            DiscordChannel? channel = await ctx.Guild.GetChannelAsync(target_id);
             if (channel is null)
             {
                 _ = errors.AppendLine($"Failed to find a target channel with the given ID `{target_id}`!");
             }
         }
 
-        if (!ulong.TryParse(response.Result.Values[reportId], out var report_id))
+        if (!ulong.TryParse(response.Result.Values[reportId], out ulong report_id))
         {
             _ = errors.AppendLine("The report channel ID must be a number!");
         }
 
         if (report_id is not 0)
         {
-            var channel = await ctx.Guild.GetChannelAsync(report_id);
+            DiscordChannel? channel = await ctx.Guild.GetChannelAsync(report_id);
             if (channel is null)
             {
                 _ = errors.AppendLine($"Failed to find a report channel with the given ID `{report_id}`!");
@@ -345,10 +335,10 @@ public class ContentTrackerCommand
         }
 
         // Test the regex
-        var pattern = response.Result.Values[regex];
+        string pattern = response.Result.Values[regex];
         try
         {
-            Regex.Match(string.Empty, pattern);
+            _ = Regex.Match(string.Empty, pattern);
         }
         catch (ArgumentException ex)
         {
