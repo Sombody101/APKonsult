@@ -15,7 +15,7 @@ public static class InfoCommand
     /// </summary>
     /// <param name="user">Which user to get information about. Leave empty to get information about yourself.</param>
     [Command("user"), TextAlias("member")]
-    public static async Task GetUserInfo(CommandContext ctx, DiscordUser? user = null)
+    public static async Task GetUserInfoAsync(CommandContext ctx, DiscordUser? user = null)
     {
         user ??= ctx.User;
 
@@ -26,8 +26,8 @@ public static class InfoCommand
             Color = Shared.DefaultEmbedColor
         };
 
-        embedBuilder.AddField("User Id", Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture)), true);
-        embedBuilder.AddField("User Mention", user.Mention, true);
+        _ = embedBuilder.AddField("User Id", Formatter.InlineCode(user.Id.ToString(CultureInfo.InvariantCulture)), true);
+        _ = embedBuilder.AddField("User Mention", user.Mention, true);
 
         List<string> userFlags = [];
         if (!user.Flags.HasValue || user.Flags.Value == DiscordUserFlags.None)
@@ -38,9 +38,11 @@ public static class InfoCommand
         {
             for (int i = 0; i < (sizeof(DiscordUserFlags) * 8); i++)
             {
-                var flag = (DiscordUserFlags)(1 << i);
+                DiscordUserFlags flag = (DiscordUserFlags)(1 << i);
                 if (!user.Flags.Value.HasFlag(flag))
+                {
                     continue;
+                }
 
                 // If the flag isn't documented, Humanize will return an empty string.
                 // When that happens, we'll use the flag bit instead.
@@ -56,14 +58,16 @@ public static class InfoCommand
 
                 // Capitalize the first letter of the first flag.
                 if (userFlags.Count == 0)
+                {
                     displayFlag = char.ToUpper(displayFlag[0], CultureInfo.InvariantCulture) + displayFlag[1..];
+                }
 
                 userFlags.Add(displayFlag);
             }
         }
 
-        embedBuilder.AddField("User Flags", $"{userFlags.DefaultIfEmpty($"Unknown flags: {user.Flags}").Humanize()}.", false);
-        embedBuilder.AddField("Joined Discord", Formatter.Timestamp(user.CreationTimestamp, TimestampFormat.RelativeTime), true);
+        _ = embedBuilder.AddField("User Flags", $"{userFlags.DefaultIfEmpty($"Unknown flags: {user.Flags}").Humanize()}.", false);
+        _ = embedBuilder.AddField("Joined Discord", Formatter.Timestamp(user.CreationTimestamp, TimestampFormat.RelativeTime), true);
 
         // The user probably wasn't in the cache. Let's try to get them from the guild.
         if (user is not DiscordMember member)
@@ -80,24 +84,26 @@ public static class InfoCommand
             }
         }
 
-        embedBuilder.AddField("Joined Guild", Formatter.Timestamp(member.JoinedAt, TimestampFormat.RelativeTime), true);
+        _ = embedBuilder.AddField("Joined Guild", Formatter.Timestamp(member.JoinedAt, TimestampFormat.RelativeTime), true);
 
-        embedBuilder.AddField("Roles", member.Roles.Any()
+        _ = embedBuilder.AddField("Roles", member.Roles.Any()
             ? string.Join('\n', member.Roles.OrderByDescending(role => role.Position).Select(role => $"- {role.Mention}"))
             : "None", false);
 
-        embedBuilder.AddField("Server Rank", member.Hierarchy.ToString());
+        _ = embedBuilder.AddField("Server Rank", member.Hierarchy.ToString());
 
         // If the user has a color, set it.
         if (!member.Color.Equals(default(DiscordColor)))
+        {
             embedBuilder.Color = member.Color;
+        }
 
         await ctx.RespondAsync(embedBuilder);
     }
 
-    public static async Task GetUserInfo(CommandContext ctx, ulong id)
+    public static async Task GetUserInfoAsync(CommandContext ctx, ulong id)
     {
-        var user = await ctx.Client.GetUserAsync(id);
+        DiscordUser? user = await ctx.Client.GetUserAsync(id);
 
         if (user is null)
         {
@@ -106,6 +112,6 @@ public static class InfoCommand
         }
 
         // Pass it off to the big-boy command
-        await GetUserInfo(ctx, user);
+        await GetUserInfoAsync(ctx, user);
     }
 }

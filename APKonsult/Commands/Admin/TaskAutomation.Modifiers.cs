@@ -55,7 +55,7 @@ public partial class TaskAutomation
             }
         }
 
-        _ = embed.WithTitle($"Deploying {actionsToDeploy.Count} Task Action{"s".Pluralize(actionsToDeploy.Count)}");
+        _ = embed.WithTitle($"Deploying {actionsToDeploy.Count} Task {"Action".Pluralize(actionsToDeploy.Count)}");
 
         foreach (EventAction action in actionsToDeploy)
         {
@@ -93,7 +93,7 @@ public partial class TaskAutomation
         string[] actionNames = actionNamesList.Split(',');
 
         DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
-            .WithTitle($"Disabling {actionNames.Length} Task Action{"s".Pluralize(actionNames.Length)}");
+            .WithTitle($"Disabling {actionNames.Length} Task {"Action".Pluralize(actionNames.Length)}");
 
         foreach (string actionName in actionNames.Select(s => s.Trim()))
         {

@@ -190,58 +190,41 @@ internal static class APKonsultBot
     /// <param name="client"></param>
     private static void InitializeEvents(EventHandlingBuilder cfg)
     {
-        cfg.HandleModalSubmitted(async (client, sender) =>
+        _ = cfg.HandleModalSubmitted(async (client, sender) =>
         {
             await sender.Interaction.CreateResponseAsync(DiscordInteractionResponseType.DeferredMessageUpdate);
         });
 
-        cfg.HandleGuildMemberRemoved(async (client, args) =>
-        {
-            var door = ContextBindings.GetChannel(args.Guild, "door");
-
-            if (door is null)
-            {
-                Log.Warning("Failed to find a door channel in {Name}", args.Guild.Name);
-                return;
-            }
-
-            await client.SendMessageAsync(door, $"{args.Member.Mention} has left the server!");
-        });
-
-        cfg.HandleGuildCreated(async (client, args) =>
+        _ = cfg.HandleGuildCreated(async (client, args) =>
         {
             await Task.Run(() => Log.Information("Joined guild: {Name} (id {Id})", args.Guild.Name, args.Guild.Id));
         });
 
-        cfg.HandleGuildMemberRemoved(async (client, args) =>
+        _ = cfg.HandleGuildMemberRemoved(async (client, args) =>
         {
             // My server
             if (!Program.IS_BEBUG_GUILD && args.Guild.Id == ChannelIDs.DEBUG_GUILD_ID)
             {
                 DiscordChannel channel = await client.GetChannelAsync(ChannelIDs.CHANNEL_GENERAL);
-                await channel.SendMessageAsync($"{args.Member.Mention} left the server!");
+                _ = await channel.SendMessageAsync($"{args.Member.Mention} left the server!");
             }
         });
 
-        cfg.HandleMessageCreated(HandleMessageCreatedAsync);
+        _ = cfg.HandleMessageCreated(HandleMessageCreatedAsync);
 
-        cfg.HandleGuildAvailable(async (client, sender) =>
+        _ = cfg.HandleGuildAvailable(async (client, sender) =>
         {
             await Services.GetRequiredService<IRegexService>().RefreshCacheAsync(sender.Guild.Id);
         });
 
-        cfg.HandleZombied(async (client, args) => await client.ReconnectAsync());
+        _ = cfg.HandleZombied(async (client, args) => await client.ReconnectAsync());
 
-        cfg.HandleGuildAvailable(async (client, args) => await Task.Run(() => Log.Information("Guild available: {Name}", args.Guild.Name)));
-
-        cfg.HandleComponentInteractionCreated(async (client, sender) =>
-        {
-        });
+        _ = cfg.HandleGuildAvailable(async (client, args) => await Task.Run(() => Log.Information("Guild available: {Name}", args.Guild.Name)));
     }
 
     private static async Task HandleMessageCreatedAsync(DiscordClient client, MessageCreatedEventArgs args)
     {
-        APKonsultContext db = (await Shared.TryGetDbContext())!;
+        APKonsultContext db = (await Shared.TryGetDbContextAsync())!;
 
         DiscordMessage message = args.Message;
         if (message.Author is null)
@@ -272,8 +255,8 @@ internal static class APKonsultBot
             {
                 // Message is larger than 5 characters
                 user.AfkStatus = null;
-                await db.SaveChangesAsync();
-                await args.Message.RespondAsync($"Welcome back {args.Author.Mention}!\nI've removed your AFK status.");
+                _ = await db.SaveChangesAsync();
+                _ = await args.Message.RespondAsync($"Welcome back {args.Author.Mention}!\nI've removed your AFK status.");
             }
 
             // Respond with AFK users and when they went AFK
@@ -286,18 +269,18 @@ internal static class APKonsultBot
                 {
                     foreach (AfkStatusEntity? afkUser in afkMentionedUsers)
                     {
-                        sb.AppendLine($"<@{afkUser.UserId}> went afk <t:{afkUser.AfkEpoch}:R>: {afkUser.AfkMessage}");
+                        _ = sb.AppendLine($"<@{afkUser.UserId}> went afk <t:{afkUser.AfkEpoch}:R>: {afkUser.AfkMessage}");
                     }
                 }
 
                 if (sb.Length > 0)
                 {
-                    await args.Message.RespondAsync(sb.ToString());
+                    _ = await args.Message.RespondAsync(sb.ToString());
                 }
             }
         }
 
-        await HandleTagEvent.HandleTag(client, args, db);
+        await HandleTagEvent.HandleTagAsync(client, args, db);
 
         string? emojiStr = user.ReactionEmoji;
 
@@ -318,7 +301,7 @@ internal static class APKonsultBot
         }
         catch (Exception ex)
         {
-            await ex.PrintException();
+            await ex.PrintExceptionAsync();
         }
     }
 

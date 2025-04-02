@@ -36,10 +36,10 @@ public static class PingCommand
     [Command("echo"),
         Description("Makes the bot create a message with your text")]
     public static async Task EchoAsync(
-        CommandContext ctx, 
-        
+        CommandContext ctx,
+
         [Description("The text you want APKonsult to reply with."),
-            RemainingText] 
+            RemainingText]
         string message)
     {
         if (string.IsNullOrEmpty(message))
@@ -53,8 +53,8 @@ public static class PingCommand
     [Command("embed"),
         Description("The same as 'echo', but prints the text in an embed")]
     public static async Task EchoEmbedAsync(
-        CommandContext ctx, 
-        
+        CommandContext ctx,
+
         [Description("The test you want APKonsult to reply with via an embed."),
             RemainingText]
         string message)

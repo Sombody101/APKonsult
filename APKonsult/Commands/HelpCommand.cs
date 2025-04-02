@@ -39,7 +39,7 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
 
         if (string.IsNullOrWhiteSpace(command))
         {
-            await ctx.PaginateAsync(GetCommandPagesAsync(ctx, userIsAdmin: await IncludeAdminModules(ctx, _dbContext)));
+            await ctx.PaginateAsync(GetCommandPagesAsync(ctx, userIsAdmin: await IncludeAdminModulesAsync(ctx, _dbContext)));
 
             return;
         }
@@ -47,7 +47,7 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
         {
             if (foundCommand.Subcommands.Count > 0)
             {
-                await ctx.PaginateAsync(GetCommandPagesAsync(ctx, foundCommand, await IncludeAdminModules(ctx, _dbContext)));
+                await ctx.PaginateAsync(GetCommandPagesAsync(ctx, foundCommand, await IncludeAdminModulesAsync(ctx, _dbContext)));
                 return;
             }
 
@@ -164,7 +164,7 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
         MethodInfo? method = command.Method;
 
         // Check if user is me or has the bot tester role
-        if (!noCode && method is not null && (context.User.IsOwner() || await context.User.IsBotTester()))
+        if (!noCode && method is not null && (context.User.IsOwner() || await context.User.IsBotTesterAsync()))
         {
             GetModuleInformation(embed, method);
         }
@@ -365,8 +365,8 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
         return Nullable.GetUnderlyingType(type) ?? type;
     }
 
-    private static async ValueTask<bool> IncludeAdminModules(CommandContext ctx, APKonsultContext _dbContext)
+    private static async ValueTask<bool> IncludeAdminModulesAsync(CommandContext ctx, APKonsultContext _dbContext)
     {
-        return ctx.User.IsOwner() || await ctx.User.IsAdmin(_dbContext);
+        return ctx.User.IsOwner() || await ctx.User.IsAdminAsync(_dbContext);
     }
 }

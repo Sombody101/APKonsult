@@ -142,8 +142,8 @@ public class BotManager
             }
         }
 
-        await ConfigManager.Manager.SaveBotConfig();
-        await ctx.RespondAsync($"Added {prefixes.Length} prefix{"es".Pluralize(prefixes.Length)}.\nChanges will be installed on next restart.");
+        await ConfigManager.Manager.SaveBotConfigAsync();
+        await ctx.RespondAsync($"Added {prefixes.Length} {"prefix".Pluralize(prefixes.Length)}.\nChanges will be installed on next restart.");
     }
 
     [Command("restart"),

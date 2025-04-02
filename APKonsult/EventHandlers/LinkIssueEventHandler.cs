@@ -1,5 +1,4 @@
-﻿using APKonsult.Configuration;
-using DSharpPlus;
+﻿using DSharpPlus;
 using DSharpPlus.EventArgs;
 using System.Globalization;
 using System.Net.Http.Json;
@@ -53,10 +52,10 @@ public sealed partial class LinkIssueEventHandler : IEventHandler<MessageCreated
             }
 
             JsonDocument? json = await responseMessage.Content.ReadFromJsonAsync<JsonDocument>();
-            if (json is null 
-                || !json.RootElement.TryGetProperty("html_url", out JsonElement url) 
-                || !json.RootElement.TryGetProperty("title", out JsonElement title) 
-                || !json.RootElement.TryGetProperty("user", out JsonElement user) 
+            if (json is null
+                || !json.RootElement.TryGetProperty("html_url", out JsonElement url)
+                || !json.RootElement.TryGetProperty("title", out JsonElement title)
+                || !json.RootElement.TryGetProperty("user", out JsonElement user)
                 || !user.TryGetProperty("login", out JsonElement login))
             {
                 continue;
@@ -77,7 +76,7 @@ public sealed partial class LinkIssueEventHandler : IEventHandler<MessageCreated
         }
         else if (issueLinks.Count == 1)
         {
-            await eventArgs.Message.RespondAsync(issueLinks[0]);
+            _ = await eventArgs.Message.RespondAsync(issueLinks[0]);
         }
         else
         {
@@ -92,12 +91,12 @@ public sealed partial class LinkIssueEventHandler : IEventHandler<MessageCreated
                         break;
                     }
 
-                    builder.AppendLine($"\\- {issueLink}");
+                    _ = builder.AppendLine($"\\- {issueLink}");
                     issuesListed++;
                 }
 
-                await eventArgs.Message.RespondAsync(builder.ToString());
-                builder.Clear();
+                _ = await eventArgs.Message.RespondAsync(builder.ToString());
+                _ = builder.Clear();
                 issueLinks.RemoveRange(0, issuesListed);
             }
         }

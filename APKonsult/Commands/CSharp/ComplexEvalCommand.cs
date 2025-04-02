@@ -37,7 +37,7 @@ public static class ComplexEvalCommand
     {
         if (ctx.Channel is null || ctx.User is not DiscordMember)
         {
-            await ModifyOrSendErrorEmbed("The REPL can only be executed in public guild channels.", ctx);
+            await ModifyOrSendErrorEmbedAsync("The REPL can only be executed in public guild channels.", ctx);
             return;
         }
 
@@ -57,7 +57,7 @@ public static class ComplexEvalCommand
 
             if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.BadRequest)
             {
-                await ModifyOrSendErrorEmbed($"Status Code: {(int)response.StatusCode} {response.StatusCode}", ctx, message);
+                await ModifyOrSendErrorEmbedAsync($"Status Code: {(int)response.StatusCode} {response.StatusCode}", ctx, message);
                 return;
             }
 
@@ -65,7 +65,7 @@ public static class ComplexEvalCommand
 
             if (replResponse is null)
             {
-                await ModifyOrSendErrorEmbed("Failed to deserialize the REPL result from JSON to a Result!", ctx, message);
+                await ModifyOrSendErrorEmbedAsync("Failed to deserialize the REPL result from JSON to a Result!", ctx, message);
                 return;
             }
 
@@ -84,7 +84,7 @@ public static class ComplexEvalCommand
         }
     }
 
-    private static async Task ModifyOrSendErrorEmbed(string error, TextCommandContext ctx, DiscordMessage? message = null)
+    private static async Task ModifyOrSendErrorEmbedAsync(string error, TextCommandContext ctx, DiscordMessage? message = null)
     {
         DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
             .WithTitle("REPL Error")

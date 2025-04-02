@@ -15,7 +15,7 @@ public class DocketItemEntity
     public string Description { get; set; } = string.Empty;
 
     [Column("status")]
-    public DocketItemStatus Status { get; set; }
+    public DocketItemStatus Status { get; set; } = DocketItemStatus.Open;
 
     [Column("close_reason")]
     public string CloseReason { get; set; } = string.Empty;

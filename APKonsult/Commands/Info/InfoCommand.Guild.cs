@@ -55,12 +55,12 @@ public partial class InfoCommand
                 }
 
                 string features = string.Join(", ", guildPreview.Features.Select(feature => feature.ToLowerInvariant().Titleize()));
-                embedBuilder.AddField("Server Description", string.IsNullOrWhiteSpace(guildPreview.Description) ? "No description." : guildPreview.Description, false);
-                embedBuilder.AddField("Server Id", Formatter.InlineCode(guildPreview.Id.ToString(CultureInfo.InvariantCulture)), true);
-                embedBuilder.AddField("Created At", Formatter.Timestamp(guildPreview.CreationTimestamp.UtcDateTime, TimestampFormat.RelativeTime), true);
-                embedBuilder.AddField("Emoji Count", guildPreview.Emojis.Count.ToString("N0", CultureInfo.InvariantCulture), true);
-                embedBuilder.AddField("Approximate Member Count", guildPreview.ApproximateMemberCount.ToString("N0", CultureInfo.InvariantCulture), true);
-                embedBuilder.AddField("Features", string.IsNullOrWhiteSpace(features) ? "None" : features, false);
+                _ = embedBuilder.AddField("Server Description", string.IsNullOrWhiteSpace(guildPreview.Description) ? "No description." : guildPreview.Description, false);
+                _ = embedBuilder.AddField("Server Id", Formatter.InlineCode(guildPreview.Id.ToString(CultureInfo.InvariantCulture)), true);
+                _ = embedBuilder.AddField("Created At", Formatter.Timestamp(guildPreview.CreationTimestamp.UtcDateTime, TimestampFormat.RelativeTime), true);
+                _ = embedBuilder.AddField("Emoji Count", guildPreview.Emojis.Count.ToString("N0", CultureInfo.InvariantCulture), true);
+                _ = embedBuilder.AddField("Approximate Member Count", guildPreview.ApproximateMemberCount.ToString("N0", CultureInfo.InvariantCulture), true);
+                _ = embedBuilder.AddField("Features", string.IsNullOrWhiteSpace(features) ? "None" : features, false);
             }
             // The bot is in the guild, so return the guild info.
             else
@@ -91,15 +91,15 @@ public partial class InfoCommand
         }
 
         string features = string.Join(", ", guild.Features.Select(feature => feature.ToLowerInvariant().Titleize()));
-        embedBuilder.AddField("Server Description", string.IsNullOrWhiteSpace(guild.Description) ? "No description." : guild.Description, false);
-        embedBuilder.AddField("Owner", (await guild.GetGuildOwnerAsync()).Mention, true);
-        embedBuilder.AddField("Created At", Formatter.Timestamp(guild.CreationTimestamp.UtcDateTime, TimestampFormat.RelativeTime), true);
-        embedBuilder.AddField("Server Id", Formatter.InlineCode(guild.Id.ToString(CultureInfo.InvariantCulture)), true);
-        embedBuilder.AddField("Emoji Count", guild.Emojis.Count.ToString("N0", CultureInfo.InvariantCulture), true);
-        embedBuilder.AddField("Role Count", guild.Roles.Count.ToString("N0", CultureInfo.InvariantCulture), true);
-        embedBuilder.AddField("Sticker Count", guild.Stickers.Count.ToString("N0", CultureInfo.InvariantCulture), true);
-        embedBuilder.AddField("Member Count", guild.MemberCount.ToString("N0", CultureInfo.InvariantCulture), true);
-        embedBuilder.AddField("Currently Scheduled Events", (guild.ScheduledEvents.Count == 0 ? (await guild.GetEventsAsync(false)).Count : guild.ScheduledEvents.Count).ToString("N0", CultureInfo.InvariantCulture), true);
-        embedBuilder.AddField("Features", string.IsNullOrWhiteSpace(features) ? "None" : features, false);
+        _ = embedBuilder.AddField("Server Description", string.IsNullOrWhiteSpace(guild.Description) ? "No description." : guild.Description, false);
+        _ = embedBuilder.AddField("Owner", (await guild.GetGuildOwnerAsync()).Mention, true);
+        _ = embedBuilder.AddField("Created At", Formatter.Timestamp(guild.CreationTimestamp.UtcDateTime, TimestampFormat.RelativeTime), true);
+        _ = embedBuilder.AddField("Server Id", Formatter.InlineCode(guild.Id.ToString(CultureInfo.InvariantCulture)), true);
+        _ = embedBuilder.AddField("Emoji Count", guild.Emojis.Count.ToString("N0", CultureInfo.InvariantCulture), true);
+        _ = embedBuilder.AddField("Role Count", guild.Roles.Count.ToString("N0", CultureInfo.InvariantCulture), true);
+        _ = embedBuilder.AddField("Sticker Count", guild.Stickers.Count.ToString("N0", CultureInfo.InvariantCulture), true);
+        _ = embedBuilder.AddField("Member Count", guild.MemberCount.ToString("N0", CultureInfo.InvariantCulture), true);
+        _ = embedBuilder.AddField("Currently Scheduled Events", (guild.ScheduledEvents.Count == 0 ? (await guild.GetEventsAsync(false)).Count : guild.ScheduledEvents.Count).ToString("N0", CultureInfo.InvariantCulture), true);
+        _ = embedBuilder.AddField("Features", string.IsNullOrWhiteSpace(features) ? "None" : features, false);
     }
 }

@@ -31,15 +31,15 @@ public partial class InfoCommand
         // We parse the emoji by hand in case if the bot doesn't have access to the emoji.
         if (DiscordEmoji.TryFromUnicode(context.Client, emoji, out DiscordEmoji? discordEmoji))
         {
-            embedBuilder.AddField("Emoji Name", _unicodeEmojis(null!).First(x => x.Value == discordEmoji.Name).Key.Replace(":", "\\:"), true);
-            embedBuilder.AddField("Unicode", $"\\{discordEmoji.Name}", true);
+            _ = embedBuilder.AddField("Emoji Name", _unicodeEmojis(null!).First(x => x.Value == discordEmoji.Name).Key.Replace(":", "\\:"), true);
+            _ = embedBuilder.AddField("Unicode", $"\\{discordEmoji.Name}", true);
             embedBuilder.ImageUrl = $"https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/{char.ConvertToUtf32(discordEmoji.Name, 0)
                 .ToString("X4", CultureInfo.InvariantCulture).ToLower(CultureInfo.InvariantCulture)}.png";
         }
         else if (DiscordEmoji.TryFromName(context.Client, emoji, out discordEmoji))
         {
-            embedBuilder.AddField("Emoji Name", discordEmoji.Name, true);
-            embedBuilder.AddField("Emoji ID", $"`{discordEmoji.Id.ToString(CultureInfo.InvariantCulture)}`", true);
+            _ = embedBuilder.AddField("Emoji Name", discordEmoji.Name, true);
+            _ = embedBuilder.AddField("Emoji ID", $"`{discordEmoji.Id.ToString(CultureInfo.InvariantCulture)}`", true);
             embedBuilder.ImageUrl = discordEmoji.Url;
         }
         else
@@ -51,17 +51,17 @@ public partial class InfoCommand
                 return;
             }
 
-            embedBuilder.AddField("Emoji Name", match.Groups[1].Value, true);
-            embedBuilder.AddField("Emoji ID", $"`{match.Groups[2].Value}`", true);
+            _ = embedBuilder.AddField("Emoji Name", match.Groups[1].Value, true);
+            _ = embedBuilder.AddField("Emoji ID", $"`{match.Groups[2].Value}`", true);
             embedBuilder.ImageUrl = $"https://cdn.discordapp.com/emojis/{match.Groups[2].Value}.png";
         }
 
         // ZWS field
-        embedBuilder.AddField("\u200B", "\u200B", true);
-        embedBuilder.AddField("Emoji URL", Formatter.MaskedUrl("Link to the image.", new Uri(embedBuilder.ImageUrl)), true);
+        _ = embedBuilder.AddField("\u200B", "\u200B", true);
+        _ = embedBuilder.AddField("Emoji URL", Formatter.MaskedUrl("Link to the image.", new Uri(embedBuilder.ImageUrl)), true);
         if (emoji.StartsWith("<a:", StringComparison.Ordinal))
         {
-            embedBuilder.AddField("GIF URL", Formatter.MaskedUrl("Link to the GIF.", new Uri(embedBuilder.ImageUrl)), true);
+            _ = embedBuilder.AddField("GIF URL", Formatter.MaskedUrl("Link to the GIF.", new Uri(embedBuilder.ImageUrl)), true);
             embedBuilder.ImageUrl = embedBuilder.ImageUrl.Replace(".png", ".gif");
         }
 

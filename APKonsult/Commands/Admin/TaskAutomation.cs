@@ -17,10 +17,11 @@ namespace APKonsult.Commands.Admin;
 /// This section uses Lua to do minimal task automation. It could have been worse and been specific implementations that read
 /// from JSON files or the SQLite DB. The latter might have been faster, but more of a headache when something should be changed.
 /// 
-/// Any command that writes to the database will have the RequireBotOwner attribute. If it doesn't interact with the database or
-/// is read-only, then it will have RequireAdminUser.
+/// Any command that writes to the database will have the <see cref="RequireBotOwnerAttribute"/> attribute. If it doesn't interact with the database or
+/// is read-only, then it will have <see cref="RequireAdminUserAttribute"/>.
 /// </summary>
 [Command("action"),
+    TextAlias("actions"),
     Description("Task automation configuration."),
     RequireAdminUser]
 public sealed partial class TaskAutomation(APKonsultContext _dbContext)
@@ -160,12 +161,9 @@ internal static class EventTaskExtensions
 {
     public static async Task<GuildDbEntity?> GetDbGuildAsync(this APKonsultContext db, DiscordGuild? guild)
     {
-        if (guild is null)
-        {
-            return null;
-        }
-
-        return await GetDbGuildAsync(db, guild.Id);
+        return guild is null 
+            ? null 
+            : await GetDbGuildAsync(db, guild.Id);
     }
 
     public static async Task<GuildDbEntity?> GetDbGuildAsync(this APKonsultContext db, ulong guildId)

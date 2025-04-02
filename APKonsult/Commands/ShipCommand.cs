@@ -104,12 +104,4 @@ public static class ShipCommand
 
         return result.ToString();
     }
-
-    private static string RandomString()
-    {
-        return string.Join(string.Empty, 
-            Enumerable.Repeat(0, 32)
-                .Select(n => (char)new Random()
-                    .Next(32, 127)));
-    }
 }

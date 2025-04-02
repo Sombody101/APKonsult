@@ -4,6 +4,7 @@ using APKonsult.Models;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
+using DSharpPlus.Commands.Trees.Metadata;
 using System.ComponentModel;
 
 namespace APKonsult.Commands.Admin;
@@ -11,22 +12,23 @@ namespace APKonsult.Commands.Admin;
 public partial class TaskAutomation
 {
     [Command("set"),
-        Description("Creates or sets data elements within an event action."),
+        TextAlias("new"),
+        Description("Creates or overwrites an event action."),
         RequireBotOwner]
     public async Task SetHandlerAsync(
         CommandContext ctx,
 
         [SlashAutoCompleteProvider(typeof(ActionNameAutocomplete)),
-            Description(ACTION_NAME_DESCRIPTION)]
-        string actionName,
+                Description(ACTION_NAME_DESCRIPTION)]
+            string actionName,
 
         [SlashAutoCompleteProvider(typeof(EventArgNameAutocomplete)),
-            Description(EVENT_NAME_DESCRIPTION)]
-        string eventName,
+                Description(EVENT_NAME_DESCRIPTION)]
+            string eventName,
 
         [Description(SCRIPT_DESCRIPTION),
-            RemainingText]
-        string script = "")
+                RemainingText]
+            string script = "")
     {
         if (await _dbContext.GetDbGuildAsync(ctx.Guild) is not GuildDbEntity guild)
         {
@@ -93,6 +95,7 @@ public partial class TaskAutomation
     }
 
     [Command("delete"),
+        TextAlias("rm"),
         Description("Deletes a task action from a given action name."),
         RequireBotOwner]
     public async Task DeleteHandlerAsync(

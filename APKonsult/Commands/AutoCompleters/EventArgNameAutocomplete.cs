@@ -35,7 +35,7 @@ internal class EventArgNameAutocomplete : IAutoCompleteProvider
             .Where(type => type.Namespace == eventArgsNamespace)
             .ToList();
 
-        Dictionary<int, string> guildEventArgs = new();
+        Dictionary<int, string> guildEventArgs = [];
 
         int ind = 0;
         foreach (Type? type in eventArgsTypes)

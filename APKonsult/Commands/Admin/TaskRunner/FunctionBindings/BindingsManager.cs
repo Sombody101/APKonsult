@@ -54,7 +54,7 @@ public static class BindingsManager
 
     public static Table GetLuaConstants(Script script)
     {
-        var idTable = new Table(script);
+        Table idTable = new(script);
 
         foreach ((string name, string id) in ChannelIDs.GetChannelIdConstants())
         {
