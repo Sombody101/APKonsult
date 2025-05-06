@@ -11,11 +11,14 @@ namespace APKonsult.Services;
 
 internal class DiscordClientService : IHostedService
 {
+    public DateTime StartTime { get; set; }
+
     public static DiscordClientService? StaticInstance { get; private set; }
     public static IDbContextFactory<APKonsultContext>? DbContextFactory { get; private set; }
 
-    public readonly DiscordClient Client;
-    public DateTime StartTime;
+    public DiscordClient Client => _client;
+
+    private readonly DiscordClient _client;
 
     public DiscordClientService
     (
@@ -25,7 +28,8 @@ internal class DiscordClientService : IHostedService
     {
         StaticInstance = this;
 
-        Client = discordClient;
+        _client = discordClient;
+
         StartTime = DateTime.Now;
         DbContextFactory = dbContextFactory;
     }
