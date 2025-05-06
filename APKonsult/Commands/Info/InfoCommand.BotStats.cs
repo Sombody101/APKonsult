@@ -62,12 +62,15 @@ public partial class InfoCommand
         _ = embedBuilder.AddField("Websocket Latency", latency_value, true);
 
         // Db data
-        _ = await _dbContext.Users.FirstOrDefaultAsync();
         Stopwatch swDb = Stopwatch.StartNew();
+        _ = await _dbContext.Users.FirstOrDefaultAsync();
+        long dryTime = swDb.ElapsedMilliseconds;
+        swDb.Restart();
         _ = await _dbContext.Guilds.FirstOrDefaultAsync();
+        long hotTime = swDb.ElapsedMilliseconds;
         swDb.Stop();
 
-        _ = embedBuilder.AddField("DB Latency:", $"{swDb.ElapsedMilliseconds:n0} ms", true)
+        _ = embedBuilder.AddField("DB Latency:", $"{dryTime:n0}ms dry, {hotTime:n0}ms hot", true)
             .AddField("DB Size", BytesToString(new FileInfo($"{ChannelIDs.FILE_ROOT}/db/APKonsult-bot.db").Length));
 
         int members = await _dbContext.Users.CountAsync();

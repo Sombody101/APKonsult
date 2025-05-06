@@ -48,7 +48,7 @@ public partial class TaskAutomation
 
             try
             {
-                (code, time) = BotEventLinker.InvokeScript(action, null, ctx.Guild);
+                (code, time) = await BotEventLinker.InvokeScriptAsync(action, null, ctx.Guild);
             }
             catch (Exception e)
             {
@@ -79,7 +79,7 @@ public partial class TaskAutomation
 
             try
             {
-                (code, time) = BotEventLinker.InvokeScript(new EventAction()
+                (code, time) = await BotEventLinker.InvokeScriptAsync(new EventAction()
                 {
                     ActionName = "Direct-Invoke-A",
                     EventName = "Direct-Invoke-E",
