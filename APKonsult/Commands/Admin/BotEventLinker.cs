@@ -49,29 +49,41 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
 
         foreach (EventAction action in foundActions)
         {
-            _ = InvokeScript(action, eventArgs, guild);
+            _ = await InvokeScriptAsync(action, eventArgs, guild);
         }
     }
 
-    public static (int exitCode, long executionTimeMs) InvokeScript(EventAction action, DiscordEventArgs? args, DiscordGuild guild)
+    public static async ValueTask<(int exitCode, long executionTimeMs)> InvokeScriptAsync(EventAction action, DiscordEventArgs? args, DiscordGuild guild)
     {
         Stopwatch luaWatch = Stopwatch.StartNew();
 
         TaskRuntime runtime = TryGetCachedRuntime(action);
         int result;
 
-        if (runtime.Active && args is not null)
+        try
         {
-            result = runtime.VisitCallback(args);
-        }
-        else
-        {
-            result = runtime.ExecuteScript(action, args);
-
-            if (runtime.Active)
+            if (runtime.Active && args is not null)
             {
-                CacheRuntime(runtime, guild.Id);
+                result = runtime.VisitCallback(args);
             }
+            else
+            {
+                result = runtime.ExecuteScript(action, args);
+
+                if (runtime.Active)
+                {
+                    CacheRuntime(runtime, guild.Id);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            luaWatch.Stop();
+
+            Log.Error(ex, "Lua task '{ActionName}' failed for guild ({Name}) {GuildId}", action.ActionName, guild.Name, action.GuildId);
+            await ex.LogToWebhookAsync();
+
+            return (-1, luaWatch.ElapsedMilliseconds);
         }
 
         luaWatch.Stop();
@@ -199,7 +211,7 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
         foreach (EventAction? action in dbGuild.DefinedActions.Where(a => a.Enabled))
         {
             Log.Information("Initializing action {ActionName} for guild {GuildId}", action.ActionName, action.GuildId);
-            _ = InvokeScript(action, null, guild);
+            _ = InvokeScriptAsync(action, null, guild);
         }
 
         return gAction;

@@ -7,6 +7,7 @@ using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using System.ComponentModel;
+using System.Xml;
 
 namespace APKonsult.Commands.Admin;
 
@@ -60,7 +61,7 @@ public partial class TaskAutomation
         foreach (EventAction action in actionsToDeploy)
         {
             string status = BotEventLinker.DeployTaskAction(ctx.Guild!, action);
-            (int code, long initMs) = BotEventLinker.InvokeScript(action, null, ctx.Guild);
+            (int code, long initMs) = await BotEventLinker.InvokeScriptAsync(action, null, ctx.Guild);
             _ = embed.AddField(status, $"{action.ActionName} - `{action.EventName}` ({GBConverter.FormatSizeFromBytes(action.LuaScript.Length)})\n" +
                 $"Init returned {code} and took {initMs}ms.");
 
@@ -71,7 +72,57 @@ public partial class TaskAutomation
         }
 
         _ = await _dbContext.SaveChangesAsync();
-        await ctx.RespondAsync(embed);
+        await ctx.RespondAsync(embed.WithColor());
+    }
+
+    // This one requires the bot owner only because purging could be disruptive
+    [Command("purge"),
+        Description("Clears all instances of a task action for all caches."),
+        RequireBotOwner]
+    public async ValueTask PurgeActionsAsync(
+        CommandContext ctx,
+
+        [SlashAutoCompleteProvider(typeof(ActionNameAutocomplete)),
+            Description(ACTION_NAME_DESCRIPTION)]
+        string actionName)
+    {
+        var actionCache = BotEventLinker.GuildActionCache.Find(g => g.GuildId == ctx.Guild.Id);
+
+        if (actionCache is null)
+        {
+            return;
+        }
+
+        string result = string.Empty;
+        EventAction foundAction = null!;
+
+        int cachedScriptIndex = actionCache.Scripts.FindIndex(s => s.ActionName == actionName);
+        if (cachedScriptIndex is not -1)
+        {
+            foundAction = actionCache.Scripts[cachedScriptIndex];
+            actionCache.Scripts.RemoveAt(cachedScriptIndex);
+            result = "Removed from cache";
+        }
+
+        int cachedRuntimeIndex = actionCache.ActiveRuntimes.FindIndex(r => r.Action.ActionName == actionName);
+        if (cachedRuntimeIndex is not -1)
+        {
+            foundAction = actionCache.ActiveRuntimes[cachedScriptIndex].Action;
+            actionCache.ActiveRuntimes.RemoveAt(cachedRuntimeIndex);
+            result = $"{result}, runtime killed";
+        }
+
+        if (result == string.Empty)
+        {
+            await ctx.RespondAsync($"No action '{actionName}' was found in the action cache!");
+            return;
+        }
+
+        await ctx.RespondAsync(new DiscordEmbedBuilder()
+            .WithTitle($"{actionName} (`{foundAction.EventName}`)")
+            .AddField("Status", result)
+            .WithColor()
+        );
     }
 
     [Command("disable"),

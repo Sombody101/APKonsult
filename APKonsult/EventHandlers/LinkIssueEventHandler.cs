@@ -70,35 +70,39 @@ public sealed partial class LinkIssueEventHandler : IEventHandler<MessageCreated
         }
 
         issueLinks = issueLinks.Distinct().ToList();
-        if (issueLinks.Count == 0)
+
+        switch (issueLinks.Count)
         {
-            return;
-        }
-        else if (issueLinks.Count == 1)
-        {
-            _ = await eventArgs.Message.RespondAsync(issueLinks[0]);
-        }
-        else
-        {
-            StringBuilder builder = new();
-            while (issueLinks.Count != 0)
-            {
-                int issuesListed = 0;
-                foreach (string issueLink in issueLinks)
+            case 0:
+                return;
+
+            case 1:
+                _ = await eventArgs.Message.RespondAsync(issueLinks[0]);
+                break;
+
+            default:
                 {
-                    if ((builder.Length + issueLink.Length + 3) > 2000)
+                    StringBuilder builder = new();
+                    while (issueLinks.Count != 0)
                     {
-                        break;
+                        int issuesListed = 0;
+                        foreach (string issueLink in issueLinks)
+                        {
+                            if ((builder.Length + issueLink.Length + 3) > 2000)
+                            {
+                                break;
+                            }
+
+                            _ = builder.AppendLine($"\\- {issueLink}");
+                            issuesListed++;
+                        }
+
+                        _ = await eventArgs.Message.RespondAsync(builder.ToString());
+                        _ = builder.Clear();
+                        issueLinks.RemoveRange(0, issuesListed);
                     }
-
-                    _ = builder.AppendLine($"\\- {issueLink}");
-                    issuesListed++;
                 }
-
-                _ = await eventArgs.Message.RespondAsync(builder.ToString());
-                _ = builder.Clear();
-                issueLinks.RemoveRange(0, issuesListed);
-            }
+                break;
         }
     }
 }
