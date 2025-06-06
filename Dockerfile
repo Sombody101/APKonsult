@@ -4,7 +4,7 @@ USER 1001:1001
 
 WORKDIR /app
 
-ARG dCI
+ARG CI
 ENV dCI=${CI}
 
 RUN echo "++ CI: $dCI"
