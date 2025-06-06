@@ -22,11 +22,7 @@ public class EnsureDBEntitiesCheck : IContextCheck<UnconditionalCheckAttribute>
 
         await using APKonsultContext dbContext = await _contextFactory.CreateDbContextAsync();
 
-        UserDbEntity userdbEntity = new()
-        {
-            Id = user.Id,
-            Username = user.Username,
-        };
+        UserDbEntity userdbEntity = new(user);
 
         _ = await dbContext.Users.Upsert(userdbEntity)
             .On(x => x.Id)
