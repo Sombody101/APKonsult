@@ -7,6 +7,7 @@ using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace APKonsult;
@@ -95,15 +96,6 @@ public static class Shared
     }
 
     /// <summary>
-    /// Gets the current epoch as a Discord time mention.
-    /// </summary>
-    /// <returns></returns>
-    public static string CurrentUnixTimestampTag()
-    {
-        return $"<t:{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}:R>";
-    }
-
-    /// <summary>
     /// Adds a transparent image to the given <paramref name="embed"/> that makes the whole embed wider.
     /// </summary>
     /// <param name="embed"></param>
@@ -123,7 +115,8 @@ public static class Shared
     /// </summary>
     /// <param name="builder"></param>
     /// <returns></returns>
-    public static DiscordEmbedBuilder WithColor(this DiscordEmbedBuilder builder)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static DiscordEmbedBuilder WithDefaultColor(this DiscordEmbedBuilder builder)
     {
         return builder.WithColor(DefaultEmbedColor);
     }
@@ -206,7 +199,7 @@ public static class Shared
         return $"{user.Username}#{user.Discriminator}";
     }
 
-    public static async ValueTask<DiscordGuild?> TryGetGuildAsync(this DiscordClient client, ulong id)
+    public static async Task<DiscordGuild?> TryGetGuildAsync(this DiscordClient client, ulong id)
     {
         try
         {
@@ -218,7 +211,7 @@ public static class Shared
         }
     }
 
-    public static async ValueTask<DiscordUser?> TryGetUserAsync(this DiscordClient client, ulong id)
+    public static async Task<DiscordUser?> TryGetUserAsync(this DiscordClient client, ulong id)
     {
         try
         {
