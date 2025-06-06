@@ -4,8 +4,10 @@ USER 1001:1001
 
 WORKDIR /app
 
-ARG CI
-ENV CI=${CI}
+ARG dCI
+ENV dCI=$CI
+
+RUN echo "++ CI: $dCI"
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
