@@ -19,7 +19,7 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
-  GITHUB_ACTIONS_IS_TRUE: 'true'
+  GITHUB_ACTIONS: 'true'
 
 jobs:
   build:
