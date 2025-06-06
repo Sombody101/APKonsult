@@ -8,6 +8,8 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 
 ARG CI
 ENV CI=${CI}
+RUN echo "++ CI: $CI"
+
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["APKonsult/APKonsult.csproj", "APKonsult/"]
