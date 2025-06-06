@@ -78,7 +78,8 @@
     </Compile>
   </ItemGroup>
 
-	<Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(DevEnvDir)'!=''">
+	<Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(DevEnvDir)'!='' And '$(DevEnvDir)'!='*Undefined*'">
+		<Message Text="Updaing version info."/>
 		<Exec Command="&quot;$(DevEnvDir)TextTransform.exe&quot; -out &quot;$(ProjectDir)\Properties\AssemblyInfo.cs&quot; &quot;$(ProjectDir)\Properties\AssemblyInfo.tt&quot;" />
 	</Target>
 	
