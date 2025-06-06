@@ -5,42 +5,21 @@ name: Docker
 # separate terms of service, privacy policy, and support
 # documentation.
 
-env:
-  GITHUB_ACTIONS_IS_TRUE: 'true'
-
-on:
+on: 
   push:
     branches: [ "main" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch:
-    inputs:
-      logLevel:
-        description: 'Log level'
-        required: true
-        default: 'warning'
-        type: choice
-        options:
-        - info
-        - warning
-        - debug
-      tags:
-        description: 'Test scenario tags'
-        required: false
-        type: boolean
-      environment:
-        description: 'Environment to run tests against'
-        type: environment
-        required: true
+  workflow_dispatch: {}
 
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
-
+  GITHUB_ACTIONS_IS_TRUE: 'true'
 
 jobs:
   build:
