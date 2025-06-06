@@ -56,12 +56,13 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Properties\APKonsult.AssemblyInfo.tt">
+    <None Update="Properties\AssemblyInfo.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>APKonsult.AssemblyInfo.cs</LastGenOutput>
+      <LastGenOutput>AssemblyInfo.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -70,14 +71,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\APKonsult.AssemblyInfo.cs">
+    <Compile Update="Properties\AssemblyInfo.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>APKonsult.AssemblyInfo.tt</DependentUpon>
+      <DependentUpon>AssemblyInfo.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
-  <ItemGroup>
+	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+		<Exec Command="&quot;$(DevEnvDir)TextTransform.exe&quot; -out &quot;$(ProjectDir)\Properties\AssemblyInfo.cs&quot; &quot;$(ProjectDir)\Properties\AssemblyInfo.tt&quot;" />
+	</Target>
+	
+	<ItemGroup>
     <Folder Include="Migrations\" />
   </ItemGroup>
 
