@@ -19,7 +19,7 @@ public static class PingCommand
             .WithTitle(Random.Shared.Next() % 3948 == 0
                 ? "Pongie!"
                 : "Pong!")
-            .WithColor()
+            .WithDefaultColor()
             .AddField($"Response latency", $"{latency.Milliseconds}ms ({latency.TotalMilliseconds}ms)"));
     }
 
@@ -29,7 +29,7 @@ public static class PingCommand
     {
         await ctx.RespondAsync(embed: new DiscordEmbedBuilder()
             .WithTitle("Uptime")
-            .WithColor()
+            .WithDefaultColor()
             .WithDescription(FormatTickCount()));
     }
 

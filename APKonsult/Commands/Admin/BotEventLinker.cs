@@ -53,7 +53,7 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
         }
     }
 
-    public static async ValueTask<(int exitCode, long executionTimeMs)> InvokeScriptAsync(EventAction action, DiscordEventArgs? args, DiscordGuild guild)
+    public static async ValueTask<(int exitCode, long executionTimeMs, Exception? exception)> InvokeScriptAsync(EventAction action, DiscordEventArgs? args, DiscordGuild guild)
     {
         Stopwatch luaWatch = Stopwatch.StartNew();
 
@@ -83,7 +83,7 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
             Log.Error(ex, "Lua task '{ActionName}' failed for guild ({Name}) {GuildId}", action.ActionName, guild.Name, action.GuildId);
             await ex.LogToWebhookAsync();
 
-            return (-1, luaWatch.ElapsedMilliseconds);
+            return (-1, luaWatch.ElapsedMilliseconds, null);
         }
 
         luaWatch.Stop();
@@ -95,7 +95,7 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
 
         Log.Debug("Lua took {ElapsedMilliseconds:n0}ms", luaWatch.ElapsedMilliseconds);
 
-        return (result, luaWatch.ElapsedMilliseconds);
+        return (result, luaWatch.ElapsedMilliseconds, null);
     }
 
     public static string DeployTaskAction(DiscordGuild guild, EventAction action)

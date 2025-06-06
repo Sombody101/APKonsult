@@ -43,12 +43,18 @@ public partial class TaskAutomation
             DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
                 .WithTitle("Lua Action Invoke Results");
 
-            int code;
-            long time;
-
             try
             {
-                (code, time) = await BotEventLinker.InvokeScriptAsync(action, null, ctx.Guild);
+                (int code, long time, Exception? exception) = await BotEventLinker.InvokeScriptAsync(action, null, ctx.Guild);
+
+                _ = embed.WithDescription($"TextScript exited with code: {code}. Execution took {time:n0}ms\nAll other output has been logged.");
+
+                if (exception is not null)
+                {
+                    embed.AddField("Exception", exception.Message);
+                }
+
+                await ctx.RespondAsync(embed);
             }
             catch (Exception e)
             {
@@ -56,8 +62,6 @@ public partial class TaskAutomation
                 return;
             }
 
-            _ = embed.WithDescription($"TextScript exited with code: {code}. Execution took {time:n0}ms\nAll other output has been logged.");
-            await ctx.RespondAsync(embed);
         }
 
         [DefaultGroupCommand,
@@ -74,26 +78,28 @@ public partial class TaskAutomation
             DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
                 .WithTitle("Lua Invoke Results");
 
-            int code;
-            long time;
-
             try
             {
-                (code, time) = await BotEventLinker.InvokeScriptAsync(new EventAction()
+                (int code, long time, Exception? exception) = await BotEventLinker.InvokeScriptAsync(new EventAction()
                 {
                     ActionName = "Direct-Invoke-A",
                     EventName = "Direct-Invoke-E",
                     LuaScript = script,
                 }, null, ctx.Guild);
+
+                _ = embed.WithDescription($"TextScript exited with code: {code}. Execution took {time:n0}ms\nAll other output has been logged.");
+
+                if (exception is not null)
+                {
+                    embed.AddField("Exception", exception.Message);
+                }
+
+                await ctx.RespondAsync(embed);
             }
             catch (Exception e)
             {
                 await ctx.RespondAsync($"Failed to invoke Lua: {e.Message}");
-                return;
             }
-
-            _ = embed.WithDescription($"TextScript exited with code: {code}. Execution took {time:n0}ms\nAll other output has been logged.");
-            await ctx.RespondAsync(embed);
         }
     }
 }
