@@ -1,29 +1,27 @@
 ﻿using APKonsult.Models;
 using DSharpPlus.Entities;
+using Serilog;
 
 namespace APKonsult.Context;
 
 internal static class DbHelpers
 {
-    public static async ValueTask<UserDbEntity> FindOrCreateDbUserAsync(this APKonsultContext _dbContext, DiscordUser dUser)
+    public static async ValueTask<UserDbEntity> FindOrCreateDbUserAsync(this APKonsultContext _dbContext, DiscordUser user)
     {
-        UserDbEntity? user = await _dbContext.Users.FindAsync(dUser.Id);
+        UserDbEntity? dbUser = await _dbContext.Users.FindAsync(user.Id);
 
-        if (user is not null)
+        if (dbUser is not null)
         {
-            return user;
+            return dbUser;
         }
 
-        user = new UserDbEntity()
-        {
-            Username = dUser.Username,
-            Id = dUser.Id,
-        };
+        dbUser = new UserDbEntity(user);
 
-        _ = await _dbContext.Users.AddAsync(user);
+        Log.Information("Creating new DB user {{id:{Id}, name:{Username}}}", user.Id, user.Username);
+        _ = await _dbContext.Users.AddAsync(dbUser);
         _ = await _dbContext.SaveChangesAsync();
 
-        return user;
+        return dbUser;
     }
 
     public static async ValueTask<GuildDbEntity> FindOrCreateDbGuildAsync(this APKonsultContext _dbContext, DiscordGuild guild)
@@ -43,6 +41,7 @@ internal static class DbHelpers
             }
         };
 
+        Log.Information("Creating new DB guild {{id:{Id}, name:{Username}}}", guild.Id, guild.Name);
         _ = await _dbContext.Guilds.AddAsync(dbGuild);
         _ = await _dbContext.SaveChangesAsync();
 
