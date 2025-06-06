@@ -5,6 +5,9 @@ name: Docker
 # separate terms of service, privacy policy, and support
 # documentation.
 
+env:
+  GITHUB_ACTIONS_IS_TRUE: 'true'
+
 on:
   push:
     branches: [ "main" ]
