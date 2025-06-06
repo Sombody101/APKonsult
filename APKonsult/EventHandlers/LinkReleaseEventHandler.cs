@@ -14,7 +14,7 @@ public sealed partial class LinkReleaseEventHandler : IEventHandler<MessageCreat
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S1075:URIs should not be hardcoded", Justification = "I don't care.")]
     private const string RELEASES_URL = "https://api.github.com/repos/Sombody101/APKognito/releases/tags";
 
-    [GeneratedRegex(@"&((v|pd|d)(?<version>\d+.\d+.\d+(.\d+)?))")]
+    [GeneratedRegex(@"\+((v|pd|d)?(?<version>\d+.\d+.\d+(.\d+)?))")]
     private static partial Regex ReleaseRegex();
 
     private readonly HttpClient _httpClient;
@@ -94,7 +94,7 @@ public sealed partial class LinkReleaseEventHandler : IEventHandler<MessageCreat
             _releaseCache[releaseVersion] = output;
         }
 
-        releaseBlocks = releaseBlocks.Distinct().ToList();
+        releaseBlocks = [.. releaseBlocks.Distinct()];
 
         switch (releaseBlocks.Count)
         {
@@ -107,7 +107,7 @@ public sealed partial class LinkReleaseEventHandler : IEventHandler<MessageCreat
 
                     var embed = new DiscordEmbedBuilder()
                         .WithDescription(message)
-                        .WithColor();
+                        .WithDefaultColor();
 
                     _ = await eventArgs.Message.RespondAsync(embed);
                 }
@@ -128,7 +128,7 @@ public sealed partial class LinkReleaseEventHandler : IEventHandler<MessageCreat
 
                     var embed = new DiscordEmbedBuilder()
                         .WithDescription(builder.ToString())
-                        .WithColor();
+                        .WithDefaultColor();
 
                     _ = await eventArgs.Message.RespondAsync(embed);
                 }

@@ -7,7 +7,7 @@ using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using System.ComponentModel;
-using System.Xml;
+using System.Text;
 
 namespace APKonsult.Commands.Admin;
 
@@ -61,9 +61,19 @@ public partial class TaskAutomation
         foreach (EventAction action in actionsToDeploy)
         {
             string status = BotEventLinker.DeployTaskAction(ctx.Guild!, action);
-            (int code, long initMs) = await BotEventLinker.InvokeScriptAsync(action, null, ctx.Guild);
-            _ = embed.AddField(status, $"{action.ActionName} - `{action.EventName}` ({GBConverter.FormatSizeFromBytes(action.LuaScript.Length)})\n" +
-                $"Init returned {code} and took {initMs}ms.");
+
+            (int code, long initMs, Exception? exception) = await BotEventLinker.InvokeScriptAsync(action, null, ctx.Guild);
+
+            StringBuilder sb = new();
+            sb.Append(action.ActionName).Append(" - `").Append(action.EventName).Append("` (").Append(GBConverter.FormatSizeFromBytes(action.LuaScript.Length)).AppendLine(")")
+                .Append("Init returned ").Append(code).Append(" and took ").Append(initMs).AppendLine("ms.");
+
+            if (exception is not null)
+            {
+                sb.Append("Exception: ").AppendLine(exception.Message);
+            }
+
+            _ = embed.AddField(status, sb.ToString());
 
             if (code is 0)
             {
@@ -72,7 +82,7 @@ public partial class TaskAutomation
         }
 
         _ = await _dbContext.SaveChangesAsync();
-        await ctx.RespondAsync(embed.WithColor());
+        await ctx.RespondAsync(embed.WithDefaultColor());
     }
 
     // This one requires the bot owner only because purging could be disruptive
@@ -121,7 +131,7 @@ public partial class TaskAutomation
         await ctx.RespondAsync(new DiscordEmbedBuilder()
             .WithTitle($"{actionName} (`{foundAction.EventName}`)")
             .AddField("Status", result)
-            .WithColor()
+            .WithDefaultColor()
         );
     }
 

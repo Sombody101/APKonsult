@@ -209,8 +209,6 @@ internal static class APKonsultBot
             }
         });
 
-        _ = cfg.HandleMessageCreated(HandleMessageCreatedAsync);
-
         _ = cfg.HandleGuildAvailable(async (client, sender) =>
         {
             await Services.GetRequiredService<IRegexService>().RefreshCacheAsync(sender.Guild.Id);
@@ -219,89 +217,6 @@ internal static class APKonsultBot
         _ = cfg.HandleZombied(async (client, args) => await client.ReconnectAsync());
 
         _ = cfg.HandleGuildAvailable(async (client, args) => await Task.Run(() => Log.Information("Guild available: {Name}", args.Guild.Name)));
-    }
-
-    private static async Task HandleMessageCreatedAsync(DiscordClient client, MessageCreatedEventArgs args)
-    {
-        APKonsultContext db = (await Shared.TryGetDbContextAsync())!;
-
-        DiscordMessage message = args.Message;
-        if (message.Author is null)
-        {
-            return;
-        }
-
-        UserDbEntity? user = await db.Users.FindAsync(message.Author.Id);
-        if (user is null)
-        {
-            // User is not in DB
-            return;
-        }
-
-        if (!args.Author.IsBot)
-        {
-            // Tracking service
-            await Services.GetRequiredService<IRegexService>().UseRegexAsync(args.Guild.Id, args.Channel.Id, args.Message);
-
-            List<AfkStatusEntity> afkUsers = await db.Set<AfkStatusEntity>()
-                .Where(x => x.UserId == args.Author.Id
-                     || args.MentionedUsers.Select(u => u.Id).Contains(x.UserId))
-                .ToListAsync();
-
-            // Check AFK
-            AfkStatusEntity? authorAfk = afkUsers.Find(x => x.UserId == args.Author.Id);
-            if (authorAfk.IsAfk() && args.Message.Content.Length > 5)
-            {
-                // Message is larger than 5 characters
-                user.AfkStatus = null;
-                _ = await db.SaveChangesAsync();
-                _ = await args.Message.RespondAsync($"Welcome back {args.Author.Mention}!\nI've removed your AFK status.");
-            }
-
-            // Respond with AFK users and when they went AFK
-            if (args.MentionedUsers.Any())
-            {
-                StringBuilder sb = new();
-
-                IEnumerable<AfkStatusEntity> afkMentionedUsers = afkUsers.Where(x => x.UserId != args.Author.Id && x.IsAfk());
-                if (afkMentionedUsers.Any())
-                {
-                    foreach (AfkStatusEntity? afkUser in afkMentionedUsers)
-                    {
-                        _ = sb.AppendLine($"<@{afkUser.UserId}> went afk <t:{afkUser.AfkEpoch}:R>: {afkUser.AfkMessage}");
-                    }
-                }
-
-                if (sb.Length > 0)
-                {
-                    _ = await args.Message.RespondAsync(sb.ToString());
-                }
-            }
-        }
-
-        await HandleTagEvent.HandleTagAsync(client, args, db);
-
-        string? emojiStr = user.ReactionEmoji;
-
-        if (string.IsNullOrWhiteSpace(emojiStr))
-        {
-            return;
-        }
-
-        try
-        {
-            if (!DiscordEmoji.TryFromName(client, emojiStr, out DiscordEmoji? emoji))
-            {
-                Log.Error("Failed to locate emoji");
-                return;
-            }
-
-            await message.CreateReactionAsync(emoji);
-        }
-        catch (Exception ex)
-        {
-            await ex.PrintExceptionAsync();
-        }
     }
 
     private static async Task HandleCommandErroredAsync(CommandsExtension sender, CommandErroredEventArgs e)

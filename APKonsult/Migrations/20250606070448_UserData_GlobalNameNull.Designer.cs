@@ -3,6 +3,7 @@ using System;
 using APKonsult.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APKonsult.Migrations
 {
     [DbContext(typeof(APKonsultContext))]
-    partial class APKonsultContextModelSnapshot : ModelSnapshot
+    [Migration("20250606070448_UserData_GlobalNameNull")]
+    partial class UserData_GlobalNameNull
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.5");
@@ -453,6 +456,7 @@ namespace APKonsult.Migrations
                         .HasColumnName("id");
 
                     b.Property<string>("AvatarHash")
+                        .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("avatar_hash");
 
@@ -461,6 +465,7 @@ namespace APKonsult.Migrations
                         .HasColumnName("banner_hash");
 
                     b.Property<string>("Discriminator")
+                        .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("discriminator");
 

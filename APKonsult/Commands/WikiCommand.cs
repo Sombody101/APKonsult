@@ -4,9 +4,11 @@ using System.ComponentModel;
 
 namespace APKonsult.Commands;
 
-internal static class WikiCommand
+public static class WikiCommand
 {
-    [Command("wiki"), Description("Make APKonsult respond with a link to the APKognito Wiki page.")]
+    public const string APKOGNITO_DOCS_URL = "https://apkognito.win";
+
+    [Command("docs"), Description("Make APKonsult respond with a link to the APKognito docs page.")]
     public static async ValueTask SendWikiAsync(
         CommandContext ctx,
 
@@ -18,10 +20,9 @@ internal static class WikiCommand
 
         DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
             .WithTitle("APKognito Wiki")
-            .WithDescription($"{mention}The APKognito Wiki can be found [here](https://github.com/Sombody101/APKognito/wiki).\n" +
-                "The Wiki is still a work in progress. Anyone is welcome to contribute via a PR.")
+            .WithDescription($"{mention}The APKognito Wiki can be found [here]({APKOGNITO_DOCS_URL}).\nThe Docs is still a work in progress. Anyone is welcome to contribute via a PR.")
             .MakeWide()
-            .WithColor();
+            .WithDefaultColor();
 
         _ = await ctx.Channel.SendMessageAsync(embed);
     }

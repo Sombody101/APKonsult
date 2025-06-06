@@ -22,16 +22,15 @@ internal static partial class HandleTagEvent
             return;
         }
 
-        string tag_name = match.Groups[1].Value;
-        if (string.IsNullOrWhiteSpace(tag_name))
+        string tagName = match.Groups[1].Value;
+        if (string.IsNullOrWhiteSpace(tagName))
         {
             return;
         }
 
-        tag_name = tag_name.Trim().ToLower();
+        tagName = tagName.Trim().ToLower();
 
-        MessageTag? tag = await db.Set<MessageTag>().Where(tag => tag.Name == tag_name && tag.UserId == args.Author.Id)
-            .FirstOrDefaultAsync();
+        MessageTag? tag = await db.Set<MessageTag>().FirstOrDefaultAsync(tag => tag.Name == tagName && tag.UserId == args.Author.Id);
 
         if (tag is null)
         {

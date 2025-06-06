@@ -37,11 +37,9 @@ public class BotManager
 
         if (dbUser is null)
         {
-            UserDbEntity new_user = new()
+            UserDbEntity new_user = new(disUser)
             {
-                Username = disUser.Username,
-                Id = disUser.Id,
-                IsBotAdmin = true, // Add user as an admin
+                IsBotAdmin = true
             };
 
             _ = await _dbContext.Users.AddAsync(new_user);
@@ -77,11 +75,9 @@ public class BotManager
 
         if (dbUser is null)
         {
-            UserDbEntity newUser = new()
+            UserDbEntity newUser = new(disUser)
             {
-                Username = disUser.Username,
-                Id = disUser.Id,
-                IsBotAdmin = false, // Set to false
+                IsBotAdmin = false
             };
 
             _ = await _dbContext.Users.AddAsync(newUser);

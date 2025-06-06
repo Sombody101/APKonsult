@@ -60,15 +60,16 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
 
     public static IEnumerable<Page> GetCommandPagesAsync(CommandContext context, Command? parentCommand = null, bool userIsAdmin = false)
     {
-        List<Command> commands = (parentCommand?.Subcommands ?? context.Extension.Commands.Values)
+        var enu = (parentCommand?.Subcommands ?? context.Extension.Commands.Values)
             .Where(c => userIsAdmin || !c.Attributes.Any(a =>
             {
                 Type attrType = a.GetType();
                 return attrType == typeof(RequireAdminUserAttribute)
                     || attrType == typeof(RequireBotOwnerAttribute);
             }))
-            .OrderBy(x => x.Name)
-            .ToList();
+            .OrderBy(x => x.Name);
+
+        List<Command> commands = [.. enu];
 
         IEnumerable<IGrouping<string, Command>> groupedCommands = commands.GroupBy(c => c.Method?.DeclaringType?.Name ?? "Global");
 
@@ -132,23 +133,24 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
             DiscordPermissions commonPermissions = permissions.BotPermissions & permissions.UserPermissions;
             DiscordPermissions botUniquePermissions = permissions.BotPermissions ^ commonPermissions;
             DiscordPermissions userUniquePermissions = permissions.UserPermissions ^ commonPermissions;
+
             StringBuilder builder = new();
 
             if (commonPermissions != default)
             {
-                _ = builder.AppendLine(commonPermissions.ToString());
+                _ = builder.AppendLine(commonPermissions.ToString("name:{permission}\n"));
             }
 
             if (botUniquePermissions != default)
             {
                 _ = builder.Append("**Bot**: ");
-                _ = builder.AppendLine((permissions.BotPermissions ^ commonPermissions).ToString());
+                _ = builder.AppendLine(botUniquePermissions.ToString("name:{permission}\n"));
             }
 
             if (userUniquePermissions != default)
             {
                 _ = builder.Append("**User**: ");
-                _ = builder.AppendLine(permissions.UserPermissions.ToString());
+                _ = builder.AppendLine(userUniquePermissions.ToString("name:{permission}\n"));
             }
 
             _ = embed.AddField("Required Permissions", builder.ToString());

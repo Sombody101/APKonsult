@@ -106,7 +106,7 @@ public sealed partial class TaskAutomation(APKonsultContext _dbContext)
         DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
             .WithTitle("Task Action Status")
             .WithFooter("Deployed: In memory awaiting invocation.\nRunning: A LuaRuntime for this action exists and its event handler is pre-loaded.")
-            .WithColor();
+            .WithDefaultColor();
 
         if (actionName is not null)
         {
