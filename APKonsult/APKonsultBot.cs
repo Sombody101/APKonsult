@@ -25,11 +25,13 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace APKonsult;
 
-internal static class APKonsultBot
+internal static partial class APKonsultBot
 {
     public const string DB_CONNECTION_STRING = $"Data Source={ChannelIDs.FILE_ROOT}/db/APKonsult-bot.db";
 
@@ -42,18 +44,12 @@ internal static class APKonsultBot
         StartupTimer = Stopwatch.StartNew();
 
         BotConfigModel config = ConfigManager.Manager.BotConfig;
+        TokensModel tokens = ConfigManager.Manager.Tokens;
 
-        string token =
-#if DEBUG
-            config.DebugBotToken;
-#else
-            config.BotToken;
-#endif
-
-        if (string.IsNullOrWhiteSpace(token))
+        if (string.IsNullOrWhiteSpace(tokens.TargetBotToken))
         {
 #if DEBUG
-            Log.Error("No bot debug token provided: '{Token}'", token);
+            Log.Error("No bot debug token provided: '{Token}'", tokens.TargetBotToken);
 #else
             Log.Error("No bot token provided: '{Token}'", token);
 #endif
@@ -84,7 +80,7 @@ internal static class APKonsultBot
                 services.AddSingleton<DiscordClientService>();
                 services.AddHostedService(s => s.GetRequiredService<DiscordClientService>());
 
-                services.AddDiscordClient(token, TextCommandProcessor.RequiredIntents
+                services.AddDiscordClient(tokens.TargetBotToken, TextCommandProcessor.RequiredIntents
                     | SlashCommandProcessor.RequiredIntents
                     | DiscordIntents.MessageContents
                     | DiscordIntents.GuildMembers
@@ -121,7 +117,7 @@ internal static class APKonsultBot
                     return new HttpClient()
                     {
                         DefaultRequestHeaders = {
-                            { "User-Agent", config.GitHubUserAgent }
+                            { "User-Agent", FormatUserAgentHeader(config.UserAgent) }
                         }
                     };
                 });
@@ -227,7 +223,7 @@ internal static class APKonsultBot
 #if DEBUG
         if (e.Context.User.Id is ChannelIDs.ABSOLUTE_ADMIN)
         {
-            await sender.Client.SendMessageAsync(await sender.Client.GetChannelAsync(BotConfigModel.DebugChannel), ex.MakeEmbedFromException());
+            await sender.Client.SendMessageAsync(await sender.Client.GetChannelAsync(BotConfigModel.DEBUG_CHANNEL), ex.MakeEmbedFromException());
         }
 #endif
 
@@ -292,4 +288,32 @@ internal static class APKonsultBot
                 break;
         }
     }
+
+    private static string FormatUserAgentHeader(string sourceHeader)
+    {
+        Assembly assembly = typeof(APKonsultBot).Assembly;
+        Dictionary<string, string> formatValues = new()
+        {
+            { "version", assembly.GetName().Version!.ToString() },
+            { "osv", Environment.OSVersion.ToString() },
+            { "buildtype", Program.BUILD_TYPE },
+            // I don't see any reason for this to be anything other than x64, but it's nice to have.
+            { "arch", RuntimeInformation.ProcessArchitecture.ToString() }
+        };
+
+        return TemplateRegex().Replace(sourceHeader, match =>
+        {
+            string key = match.Groups[1].Value;
+
+            if (formatValues.TryGetValue(key, out string? value))
+            {
+                return value;
+            }
+
+            return match.Value;
+        });
+    }
+
+    [GeneratedRegex(@"{(\w+)}")]
+    private static partial Regex TemplateRegex();
 }
