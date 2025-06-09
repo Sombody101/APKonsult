@@ -49,10 +49,13 @@ public sealed class MessageCreatedEventHandler(APKonsultContext _dbContext, IReg
         }
 
         // Handle mentioned users
-        if (eventArgs.MentionedUsers.Any())
+        List<ulong> mentionedUserIds = [.. eventArgs.MentionedUsers.Select(u => u.Id)];
+
+        if (mentionedUserIds.Count > 0)
         {
-            IEnumerable<AfkStatusEntity> afkMentionedUsers = _dbContext.Set<AfkStatusEntity>()
-                .Where(x => eventArgs.MentionedUsers.Select(u => u.Id).Contains(x.UserId) && x.IsAfk());
+            IEnumerable<AfkStatusEntity> afkMentionedUsers = await _dbContext.Set<AfkStatusEntity>()
+                .Where(x => mentionedUserIds.Contains(x.UserId) && x.AfkMessage != null)
+                .ToListAsync();
 
             if (afkMentionedUsers.Any())
             {
