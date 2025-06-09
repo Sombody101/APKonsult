@@ -17,16 +17,13 @@ public class AfkStatusEntity
     [Column("afk_epoch")]
     public long AfkEpoch { get; set; }
 
-    public UserDbEntity User { get; set; }
+    public required UserDbEntity User { get; set; }
 }
 
 public static class Ext
 {
     public static bool IsAfk(this AfkStatusEntity? status)
     {
-        if (status is null || string.IsNullOrWhiteSpace(status.AfkMessage))
-            return false;
-
-        return true;
+        return status is not null && !string.IsNullOrWhiteSpace(status.AfkMessage);
     }
 }
