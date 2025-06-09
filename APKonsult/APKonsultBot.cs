@@ -2,8 +2,6 @@
 
 using APKonsult.Configuration;
 using APKonsult.Context;
-using APKonsult.EventHandlers;
-using APKonsult.Models;
 using APKonsult.Services;
 using APKonsult.Services.RegexServices;
 using DSharpPlus;
@@ -14,7 +12,6 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 using DSharpPlus.Extensions;
 using DSharpPlus.Interactivity;

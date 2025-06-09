@@ -10,6 +10,7 @@ public abstract record IdleMoment
     public DiscordMessage? Message { get; set; }
 
     public abstract ValueTask HandleAsync(Procrastinator procrastinator, DiscordInteraction interaction);
+
     public virtual async ValueTask TimedOutAsync(Procrastinator procrastinator)
     {
         // If there's a message attached, disable all components related to the data

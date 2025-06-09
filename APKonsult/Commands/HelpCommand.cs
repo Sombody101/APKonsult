@@ -81,7 +81,20 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
 
             foreach (Command? command in group)
             {
-                _ = embed.AddField(command.Name.Titleize(), command.Description ?? "No description provided.");
+                string description = command.Description ?? "No description provided.";
+
+                // var methodParams = command.Method?.GetParameters();
+                // if (methodParams is not null && methodParams.Length > 0)
+                // {
+                //     var commandType = methodParams[0].ParameterType;
+                //     if (commandType == typeof(CommandContext)
+                //         || commandType == typeof(SlashCommandContext))
+                //     {
+                //         description = $"{description} | </{command.Name}:{command.GuildIds}>";
+                //     }
+                // }
+
+                _ = embed.AddField(command.Name.Titleize(), description);
             }
 
             DiscordMessageBuilder message = new DiscordMessageBuilder()

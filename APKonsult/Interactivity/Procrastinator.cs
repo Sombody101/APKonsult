@@ -1,5 +1,6 @@
 using APKonsult.Interactivity.Moments.Idle;
 using DSharpPlus;
+using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -67,9 +68,19 @@ public sealed partial class Procrastinator : IEventHandler<InteractionCreatedEve
             && Ulid.TryParse(eventArgs.Interaction.Data.CustomId[..26], out Ulid id)
             && _data.TryGetValue(id, out IdleMoment? data)
             && !data.CancellationToken.IsCancellationRequested
-            && _data.Remove(id)
         )
         {
+            if (data.AuthorId != eventArgs.Interaction.User.Id)
+            {
+                await eventArgs.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder()
+                        .WithContent("You did not create this interaction and cannot modify it!")
+                        .AsEphemeral());
+
+                return;
+            }
+
+            _data.Remove(id);
             await data.HandleAsync(this, eventArgs.Interaction);
         }
     }
