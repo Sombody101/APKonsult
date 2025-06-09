@@ -51,7 +51,7 @@ internal static partial class APKonsultBot
 #if DEBUG
             Log.Error("No bot debug token provided: '{Token}'", tokens.TargetBotToken);
 #else
-            Log.Error("No bot token provided: '{Token}'", token);
+            Log.Error("No bot token provided: '{Token}'", tokens.TargetBotToken);
 #endif
             Environment.Exit(1);
         }
