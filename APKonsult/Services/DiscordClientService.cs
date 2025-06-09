@@ -70,11 +70,11 @@ internal class DiscordClientService : IHostedService
                 .AddField("Runtime version", $"R{assembly.ImageRuntimeVersion}", true)
                 .MakeWide();
 
-            _ = await Client.SendMessageAsync(await Client.GetChannelAsync(BotConfigModel.DebugChannel), init_embed);
+            _ = await Client.SendMessageAsync(await Client.GetChannelAsync(BotConfigModel.DEBUG_CHANNEL), init_embed);
         }
         catch (Exception ex)
         {
-            Log.Information(ex, "Failed to send message to debug guild channel: {DebugChannel}", BotConfigModel.DebugChannel);
+            Log.Information(ex, "Failed to send message to debug guild channel: {DebugChannel}", BotConfigModel.DEBUG_CHANNEL);
             await ex.LogToWebhookAsync();
         }
     }

@@ -50,7 +50,8 @@ internal static class Program
 #endif
 
         // Initialize webhook
-        string webhook = ConfigManager.Manager.BotConfig.DiscordWebhookUrl;
+        ConfigManager.Manager.LoadBotTokens();
+        string webhook = ConfigManager.Manager.Tokens.DiscordWebhookUrl;
 
         if (string.IsNullOrWhiteSpace(webhook))
         {
