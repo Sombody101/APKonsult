@@ -26,7 +26,7 @@ public partial class InfoCommand
     [GeneratedRegex(", (?=[^,]*$)", RegexOptions.Compiled)]
     private static partial Regex _getLastCommaRegex();
 
-    private readonly AllocationRateTracker _allocationRateTracker;
+    private readonly AllocationRateTracker _allocationRateTracker = allocationRateTracker;
 
     [Command("bot"),
         Description("Get statistics about the bot"),
