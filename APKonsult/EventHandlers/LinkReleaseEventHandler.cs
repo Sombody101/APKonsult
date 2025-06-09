@@ -45,7 +45,14 @@ public sealed partial class LinkReleaseEventHandler : IEventHandler<MessageCreat
                 continue;
             }
 
-            string issueUrl = $"{RELEASES_URL}/{groups[2].ValueSpan}{releaseVersion}";
+            string versionPrefix = groups[2].Value;
+
+            if (string.IsNullOrWhiteSpace(versionPrefix))
+            {
+                versionPrefix = "v";
+            }
+
+            string issueUrl = $"{RELEASES_URL}/{versionPrefix}{releaseVersion}";
             HttpResponseMessage responseMessage = await _httpClient.GetAsync(issueUrl);
             if (!responseMessage.IsSuccessStatusCode)
             {
