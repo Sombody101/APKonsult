@@ -80,8 +80,10 @@ public sealed partial class Procrastinator : IEventHandler<InteractionCreatedEve
                 return;
             }
 
-            _data.Remove(id);
-            await data.HandleAsync(this, eventArgs.Interaction);
+            if (_data.Remove(id))
+            {
+                await data.HandleAsync(this, eventArgs.Interaction);
+            }
         }
     }
 }
