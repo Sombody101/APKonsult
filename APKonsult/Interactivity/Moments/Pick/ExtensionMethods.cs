@@ -43,7 +43,7 @@ public static class ExtensionMethods
         data.Message = await member.SendMessageAsync(new DiscordMessageBuilder()
             .WithAllowedMentions(Mentions.None)
             .WithContent(question)
-            .AddComponents(dropDown)
+            .AddActionRowComponent(dropDown)
         );
 
         await data.TaskCompletionSource.Task;
@@ -87,7 +87,7 @@ public static class ExtensionMethods
         await context.RespondAsync(new DiscordMessageBuilder()
             .WithAllowedMentions(Mentions.None)
             .WithContent(question)
-            .AddComponents(dropDown)
+            .AddActionRowComponent(dropDown)
         );
 
         data.Message = await context.GetResponseAsync();

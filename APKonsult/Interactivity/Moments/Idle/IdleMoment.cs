@@ -28,11 +28,11 @@ public abstract record IdleMoment
                 // We do this because ARC has it's own overload
                 if (component is DiscordActionRowComponent row)
                 {
-                    _ = messageBuilder.AddComponents(row.Components);
+                    _ = messageBuilder.AddActionRowComponent(row.Components.Cast<DiscordButtonComponent>());
                 }
                 else
                 {
-                    _ = messageBuilder.AddComponents(component);
+                    _ = messageBuilder.AddActionRowComponent((DiscordButtonComponent)component);
                 }
             }
 

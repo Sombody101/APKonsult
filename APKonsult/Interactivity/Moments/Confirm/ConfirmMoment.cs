@@ -10,8 +10,8 @@ public record ConfirmMoment : IdleMoment<IConfirmComponentCreator>
 
     public override async ValueTask HandleAsync(Procrastinator procrastinator, DiscordInteraction interaction)
     {
-        if (interaction.Type != DiscordInteractionType.Component 
-            || interaction.Message?.Components is null 
+        if (interaction.Type != DiscordInteractionType.Component
+            || interaction.Message?.Components is null
             || interaction.Message.Components.Count == 0)
         {
             return;
@@ -19,7 +19,7 @@ public record ConfirmMoment : IdleMoment<IConfirmComponentCreator>
 
         DiscordInteractionResponseBuilder responseBuilder = new(new DiscordMessageBuilder(interaction.Message));
         responseBuilder.ClearComponents();
-        responseBuilder.AddComponents(interaction.Message.Components.Mutate<DiscordButtonComponent>(
+        responseBuilder.AddActionRowComponent(interaction.Message.Components.Mutate<DiscordButtonComponent>(
             button => button.CustomId.StartsWith(Id.ToString(), StringComparison.Ordinal) && !button.Disabled,
             button =>
             {
@@ -30,7 +30,7 @@ public record ConfirmMoment : IdleMoment<IConfirmComponentCreator>
 
                 return button.Disable();
             }
-        ).Cast<DiscordActionRowComponent>());
+        ).Cast<DiscordButtonComponent>());
 
         await interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, responseBuilder);
     }

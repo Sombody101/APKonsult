@@ -42,7 +42,7 @@ public static class PromptExtensions
         data.Message = await member.SendMessageAsync(new DiscordMessageBuilder()
             .WithAllowedMentions(Mentions.None)
             .WithContent(question)
-            .AddComponents(button)
+            .AddActionRowComponent(button)
         );
 
         _ = await data.TaskCompletionSource.Task;
@@ -86,7 +86,7 @@ public static class PromptExtensions
             DiscordMessageBuilder builder = new DiscordMessageBuilder()
                 .WithAllowedMentions(Mentions.None)
                 .WithContent(question)
-                .AddComponents(button);
+                .AddActionRowComponent(button);
 
             await textContext.RespondAsync(builder);
             data.Message = textContext.Response;
@@ -101,7 +101,7 @@ public static class PromptExtensions
             await slashContext.RespondWithModalAsync(new DiscordInteractionResponseBuilder()
                 .WithTitle(question)
                 .WithCustomId(id.ToString())
-                .AddComponents(componentCreator.CreateModalPromptButton(question, placeholder, id))
+                .AddTextInputComponent(componentCreator.CreateModalPromptButton(question, placeholder, id))
             );
         }
         else
