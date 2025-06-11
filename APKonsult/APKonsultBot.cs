@@ -173,7 +173,26 @@ internal static partial class APKonsultBot
 
                 services.AddInteractivityExtension(interactivityConfig);
 
-                services.AddLavalink();
+                services.AddLavalink().ConfigureLavalink((config) =>
+                {
+                    string password = Environment.GetEnvironmentVariable("LAVALINK_SERVER_PASSWORD") ?? tokens.LavaLinkPassword;
+
+                    if (string.IsNullOrEmpty(password))
+                    {
+                        Log.Warning("No LavaLink password found in the environment or tokens.json! LavaLink will not work without this!");
+                        return;
+                    }
+
+                    config.Passphrase = password;
+                    config.Label = $"LavaLink-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+
+                    string? llPort = Environment.GetEnvironmentVariable("LAVALINK_PORT");
+                    if (!string.IsNullOrWhiteSpace(llPort))
+                    {
+                        // LL4Net should give a default value, so only set this is the environment has a port defined.
+                        config.BaseAddress = new($"http://localhost:{llPort}");
+                    }
+                });
 
                 Services = services.BuildServiceProvider();
             })

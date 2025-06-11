@@ -27,4 +27,7 @@ internal sealed class TokensModel
 
     [JsonProperty("webhook_url")]
     public string DiscordWebhookUrl { get; init; } = string.Empty;
+
+    [JsonProperty("lavalink_password")]
+    public string LavaLinkPassword { get; init; } = string.Empty;
 }

@@ -24,20 +24,20 @@ internal sealed class MusicPlayer(IAudioService _audioService)
             return;
         }
 
-        if (member.VoiceState.ChannelId is ulong)
+        if (member.VoiceState.ChannelId is not ulong channelId)
         {
             await ctx.RespondAsync("You must be in a voice channel in order to use this command!");
             return;
         }
 
-        // ctx.Client.call
+        await JoinVoiceCallAsync(ctx, true);
     }
 
     [Command("play"),
         DebugOnly,
         Description("Plays music"),
         DirectMessageUsage(DirectMessageUsage.DenyDMs)]
-    public async Task PlayTrackAsync(CommandContext context,
+    public async Task PlayTrackAsync(CommandContext ctx,
 
         [Parameter("query")]
         [Description("Track to play")]
@@ -45,10 +45,10 @@ internal sealed class MusicPlayer(IAudioService _audioService)
     {
         // This operation could take a while - deferring the interaction lets Discord know we've
         // received it and lets us update it later. Users see a "thinking..." state.
-        await context.DeferResponseAsync().ConfigureAwait(false);
+        await ctx.DeferResponseAsync().ConfigureAwait(false);
 
         // Attempt to get the player
-        QueuedLavalinkPlayer? player = await GetPlayerAsync(context, connectToVoiceChannel: true).ConfigureAwait(false);
+        QueuedLavalinkPlayer? player = await GetPlayerAsync(ctx, connectToVoiceChannel: true).ConfigureAwait(false);
 
         // If something went wrong getting the player, don't attempt to play any tracks
         if (player is null)
@@ -68,7 +68,7 @@ internal sealed class MusicPlayer(IAudioService _audioService)
                 .WithContent("😖 No results.")
                 .AsEphemeral();
 
-            _ = await context
+            _ = await ctx
                 .EditResponseAsync(errorResponse)
                 .ConfigureAwait(false);
 
@@ -83,7 +83,7 @@ internal sealed class MusicPlayer(IAudioService _audioService)
         // If it was added to the queue
         if (position is 0)
         {
-            _ = await context
+            _ = await ctx
                 .FollowupAsync(new DiscordFollowupMessageBuilder().WithContent($"🔈 Playing: {track.Uri}"))
                 .ConfigureAwait(false);
         }
@@ -91,23 +91,15 @@ internal sealed class MusicPlayer(IAudioService _audioService)
         // If it was played directly
         else
         {
-            _ = await context
+            _ = await ctx
                 .FollowupAsync(new DiscordFollowupMessageBuilder().WithContent($"🔈 Added to queue: {track.Uri}"))
                 .ConfigureAwait(false);
         }
     }
 
-    private async ValueTask<QueuedLavalinkPlayer?> GetPlayerAsync(CommandContext ctx, bool connectToVoiceChannel = true)
+    private async ValueTask<QueuedLavalinkPlayer?> GetPlayerAsync(CommandContext ctx, bool connectToVoiceChannel)
     {
-        PlayerRetrieveOptions retrieveOptions = new(ChannelBehavior: connectToVoiceChannel
-            ? PlayerChannelBehavior.Join
-            : PlayerChannelBehavior.None);
-
-        QueuedLavalinkPlayerOptions playerOptions = new() { HistoryCapacity = 10000 };
-
-        PlayerResult<QueuedLavalinkPlayer> result = await _audioService.Players
-            .RetrieveAsync(ctx.Guild!.Id, ctx.Member!.VoiceState.ChannelId, playerFactory: PlayerFactory.Queued, Options.Create(playerOptions), retrieveOptions)
-            .ConfigureAwait(false);
+        var result = await JoinVoiceCallAsync(ctx, connectToVoiceChannel);
 
         if (result.IsSuccess)
         {
@@ -130,5 +122,18 @@ internal sealed class MusicPlayer(IAudioService _audioService)
             .ConfigureAwait(false);
 
         return null;
+    }
+
+    private async Task<PlayerResult<QueuedLavalinkPlayer>> JoinVoiceCallAsync(CommandContext ctx, bool connectToVoiceChannel)
+    {
+        PlayerRetrieveOptions retrieveOptions = new(ChannelBehavior: connectToVoiceChannel
+            ? PlayerChannelBehavior.Join
+            : PlayerChannelBehavior.None);
+
+        QueuedLavalinkPlayerOptions playerOptions = new() { HistoryCapacity = 10000 };
+
+        return await _audioService.Players
+           .RetrieveAsync(ctx.Guild!.Id, ctx.Member!.VoiceState.ChannelId, playerFactory: PlayerFactory.Queued, Options.Create(playerOptions), retrieveOptions)
+           .ConfigureAwait(false);
     }
 }
