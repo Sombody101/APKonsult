@@ -18,6 +18,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
+using Lavalink4NET.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -84,7 +85,8 @@ internal static partial class APKonsultBot
                     | SlashCommandProcessor.RequiredIntents
                     | DiscordIntents.MessageContents
                     | DiscordIntents.GuildMembers
-                    | DiscordIntents.GuildEmojisAndStickers);
+                    | DiscordIntents.GuildEmojisAndStickers
+                    | DiscordIntents.GuildVoiceStates);
 
                 services.AddDbContextFactory<APKonsultContext>(
                     options =>
@@ -171,6 +173,8 @@ internal static partial class APKonsultBot
 
                 services.AddInteractivityExtension(interactivityConfig);
 
+                services.AddLavalink();
+
                 Services = services.BuildServiceProvider();
             })
             .RunConsoleAsync();
@@ -190,16 +194,6 @@ internal static partial class APKonsultBot
         _ = cfg.HandleGuildCreated(async (client, args) =>
         {
             await Task.Run(() => Log.Information("Joined guild: {Name} (id {Id})", args.Guild.Name, args.Guild.Id));
-        });
-
-        _ = cfg.HandleGuildMemberRemoved(async (client, args) =>
-        {
-            // My server
-            if (!Program.IS_BEBUG_GUILD && args.Guild.Id == ChannelIDs.DEBUG_GUILD_ID)
-            {
-                DiscordChannel channel = await client.GetChannelAsync(ChannelIDs.CHANNEL_GENERAL);
-                _ = await channel.SendMessageAsync($"{args.Member.Mention} left the server!");
-            }
         });
 
         _ = cfg.HandleGuildAvailable(async (client, sender) =>
