@@ -1,5 +1,7 @@
-﻿using DSharpPlus.Commands;
+﻿using APKonsult.Context;
+using DSharpPlus.Commands;
 using DSharpPlus.Entities;
+using Humanizer;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.ComponentModel;
@@ -190,5 +192,103 @@ public sealed class GitsAndShiggles(HttpClient _httpClient, ILogger<GitsAndShigg
 
         [JsonProperty("day")]
         public string Day { get; init; } = string.Empty;
-    }       
+    }
+
+    public sealed class EEE(APKonsultContext _dbContext)
+    {
+        [Command("isee")]
+        public async Task ISeeAsync(CommandContext ctx)
+        {
+            if (!await NoForYouAsync(ctx))
+            {
+                return;
+            }
+
+            int count = await GetCountAsync() + 1;
+            await SetCountAsync(count);
+
+            await _dbContext.SaveChangesAsync();
+
+            await ctx.RespondAsync($"`i see` count increased to {count}.");
+        }
+
+        [Command("seesee")]
+        public async Task SeeSeeAsync(CommandContext ctx)
+        {
+            if (!await NoForYouAsync(ctx))
+            {
+                return;
+            }
+
+            int count = await GetCountAsync();
+
+            await ctx.RespondAsync($"The current `i see` count is {count}.");
+            await NotifySeerAsync(ctx, count);
+        }
+
+        [Command("setsee")]
+        public async Task SetSeeAsync(CommandContext ctx, int manual)
+        {
+            if (!await NoForYouAsync(ctx))
+            {
+                return;
+            }
+
+            await SetCountAsync(manual);
+
+            await _dbContext.SaveChangesAsync();
+
+            await ctx.RespondAsync($"Set `i see` count to {manual}.");
+        }
+
+        private static async ValueTask<bool> NoForYouAsync(CommandContext ctx)
+        {
+            if (!ctx.User.IsOwner() && ctx.User.Id is not 1036709605956395068)
+            {
+                await ctx.RespondAsync("You cannot run this command!");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static async Task NotifySeerAsync(CommandContext ctx, int count)
+        {
+            if (count % 100 is not 0)
+            {
+                // Not the hundredth
+                return;
+            }
+
+            var user = await ctx.Client.GetUserAsync(1036709605956395068);
+
+            if (user is null)
+            {
+                await ctx.RespondAsync("Failed to notify seer of status :(");
+                return;
+            }
+
+            var dmChannel = await user.CreateDmChannelAsync();
+            await dmChannel.SendMessageAsync($"Your {count.Ordinalize()}");
+        }
+
+        const string COUNT_FILE = $"{ChannelIDs.FILE_ROOT}/configs/iseecount.txt";
+
+        private static async Task<int> GetCountAsync()
+        {
+            if (!File.Exists(COUNT_FILE))
+            {
+                await SetCountAsync(0);
+                return 0;
+            }
+
+            string rawCount = await File.ReadAllTextAsync(COUNT_FILE);
+            return int.Parse(rawCount);
+        }
+
+        private static async Task SetCountAsync(int count)
+        {
+            await File.WriteAllTextAsync(COUNT_FILE, count.ToString());
+        }
+    }
 }
