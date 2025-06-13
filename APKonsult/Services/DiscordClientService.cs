@@ -18,6 +18,8 @@ internal class DiscordClientService : IHostedService
 
     public DiscordClient Client => _client;
 
+    public static IReadOnlyList<DiscordApplicationCommand> ApplicationCommands { get; private set; }
+
     private readonly DiscordClient _client;
 
     public DiscordClientService
@@ -53,6 +55,8 @@ internal class DiscordClientService : IHostedService
         Log.Information("Connecting bot");
         DiscordActivity status = new("for some commands", DiscordActivityType.Watching);
         await Client.ConnectAsync(status);
+
+        ApplicationCommands = await Client.GetGlobalApplicationCommandsAsync();
 
         try
         {
