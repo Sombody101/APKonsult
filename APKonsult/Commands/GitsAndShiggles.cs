@@ -1,6 +1,10 @@
-﻿using APKonsult.Context;
+﻿using APKonsult.CommandChecks.Attributes;
+using APKonsult.Context;
+using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
 using Humanizer;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -194,9 +198,14 @@ public sealed class GitsAndShiggles(HttpClient _httpClient, ILogger<GitsAndShigg
         public string Day { get; init; } = string.Empty;
     }
 
-    public sealed class EEE(APKonsultContext _dbContext)
+    [Hidden]
+    public sealed class EEE(APKonsultContext _dbContext) : IEventHandler<MessageCreatedEventArgs>
     {
-        [Command("isee")]
+        const string COUNT_FILE = $"{ChannelIDs.FILE_ROOT}/configs/iseecount.txt";
+
+        [Command("isee"),
+            RequireAdminUser,
+            Hidden]
         public async Task ISeeAsync(CommandContext ctx)
         {
             if (!await NoForYouAsync(ctx))
@@ -204,29 +213,16 @@ public sealed class GitsAndShiggles(HttpClient _httpClient, ILogger<GitsAndShigg
                 return;
             }
 
-            int count = await GetCountAsync() + 1;
-            await SetCountAsync(count);
+            int count = await IncreaseCounterAsync();
 
             await _dbContext.SaveChangesAsync();
 
             await ctx.RespondAsync($"`i see` count increased to {count}.");
         }
 
-        [Command("seesee")]
-        public async Task SeeSeeAsync(CommandContext ctx)
-        {
-            if (!await NoForYouAsync(ctx))
-            {
-                return;
-            }
-
-            int count = await GetCountAsync();
-
-            await ctx.RespondAsync($"The current `i see` count is {count}.");
-            await NotifySeerAsync(ctx, count);
-        }
-
-        [Command("setsee")]
+        [Command("setsee"),
+            RequireAdminUser,
+            Hidden]
         public async Task SetSeeAsync(CommandContext ctx, int manual)
         {
             if (!await NoForYouAsync(ctx))
@@ -241,6 +237,38 @@ public sealed class GitsAndShiggles(HttpClient _httpClient, ILogger<GitsAndShigg
             await ctx.RespondAsync($"Set `i see` count to {manual}.");
         }
 
+        [Command("unsee"),
+            TextAlias("falsesee"),
+            RequireAdminUser,
+            Hidden]
+        public async Task UnseeAsync(CommandContext ctx)
+        {
+            if (!await NoForYouAsync(ctx))
+            {
+                return;
+            }
+
+            int count = await DecreaseCounterAsync();
+
+            await _dbContext.SaveChangesAsync();
+
+            await ctx.RespondAsync($"`i see` count increased to {count}.");
+        }
+
+        [Command("seesee"), Hidden]
+        public async Task SeeSeeAsync(CommandContext ctx)
+        {
+            if (!await NoForYouAsync(ctx))
+            {
+                return;
+            }
+
+            int count = await GetCountAsync();
+
+            await ctx.RespondAsync($"The current `i see` count is {count}.");
+            await NotifySeerAsync(ctx.Client, count, ctx.Channel.Id);
+        }
+
         private static async ValueTask<bool> NoForYouAsync(CommandContext ctx)
         {
             if (!ctx.User.IsOwner() && ctx.User.Id is not 1036709605956395068)
@@ -252,7 +280,7 @@ public sealed class GitsAndShiggles(HttpClient _httpClient, ILogger<GitsAndShigg
             return true;
         }
 
-        private static async Task NotifySeerAsync(CommandContext ctx, int count)
+        private static async Task NotifySeerAsync(DiscordClient client, int count, ulong errorChannelId)
         {
             if (count % 100 is not 0)
             {
@@ -260,19 +288,34 @@ public sealed class GitsAndShiggles(HttpClient _httpClient, ILogger<GitsAndShigg
                 return;
             }
 
-            var user = await ctx.Client.GetUserAsync(1036709605956395068);
+            var user = await client.GetUserAsync(1036709605956395068);
 
             if (user is null)
             {
-                await ctx.RespondAsync("Failed to notify seer of status :(");
+                var errorChannel = await client.GetChannelAsync(errorChannelId);
+                await client.SendMessageAsync(errorChannel, "Failed to notify seer of status :(");
                 return;
             }
 
             var dmChannel = await user.CreateDmChannelAsync();
-            await dmChannel.SendMessageAsync($"Your {count.Ordinalize()}");
+            await dmChannel.SendMessageAsync($"You just said your {count.Ordinalize()} `i see`!\nWhen will it stop? Probably :sparkles: never :sparkles:");
         }
 
-        const string COUNT_FILE = $"{ChannelIDs.FILE_ROOT}/configs/iseecount.txt";
+        private static async Task<int> IncreaseCounterAsync()
+        {
+            int count = await GetCountAsync() + 1;
+            await SetCountAsync(count);
+
+            return count;
+        }
+
+        private static async Task<int> DecreaseCounterAsync()
+        {
+            int count = await GetCountAsync() - 1;
+            await SetCountAsync(count);
+
+            return count;
+        }
 
         private static async Task<int> GetCountAsync()
         {
@@ -289,6 +332,27 @@ public sealed class GitsAndShiggles(HttpClient _httpClient, ILogger<GitsAndShigg
         private static async Task SetCountAsync(int count)
         {
             await File.WriteAllTextAsync(COUNT_FILE, count.ToString());
+        }
+
+        public async Task HandleEventAsync(DiscordClient sender, MessageCreatedEventArgs eventArgs)
+        {
+            if (eventArgs.Author.Id is not 1036709605956395068)
+            {
+                // Not waterchip.
+                return;
+            }
+
+            string message = eventArgs.Message.Content.Trim();
+            if (message.Length > 15 || !message.Contains("i see", StringComparison.OrdinalIgnoreCase))
+            {
+                // Not an `i see`
+                return;
+            }
+
+            int count = await IncreaseCounterAsync();
+
+            await eventArgs.Message.RespondAsync($"This is your {count.Ordinalize()} `i see`.");
+            await NotifySeerAsync(sender, count, eventArgs.Channel.Id);
         }
     }
 }
