@@ -42,7 +42,7 @@ public record PromptMoment : IdleMoment<IPromptComponentCreator>
                 await interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, new DiscordInteractionResponseBuilder()
                     .WithTitle(Question)
                     .WithCustomId(Id.ToString())
-                    .AddComponents(ComponentCreator.CreateModalPromptButton(Question, Placeholder, Id))
+                    .AddTextInputComponent(ComponentCreator.CreateModalPromptButton(Question, Placeholder, Id))
                 );
             }
             else if (interaction.Type == DiscordInteractionType.ModalSubmit)
@@ -50,9 +50,11 @@ public record PromptMoment : IdleMoment<IPromptComponentCreator>
                 // Update the text button to a disabled state
                 DiscordWebhookBuilder responseBuilder = new(new DiscordMessageBuilder(interaction.Message));
                 responseBuilder.ClearComponents();
-                _ = responseBuilder.AddComponents(interaction.Message.Components.Mutate<DiscordButtonComponent>(
+
+                _ = responseBuilder.AddActionRowComponent(interaction.Message.Components.Mutate<DiscordButtonComponent>(
                     button => button.CustomId == findButton.CustomId,
-                    button => button.Disable()).Cast<DiscordActionRowComponent>());
+                    button => button.Disable()
+                ).Cast<DiscordButtonComponent>());
 
                 _ = await interaction.EditOriginalResponseAsync(responseBuilder);
             }

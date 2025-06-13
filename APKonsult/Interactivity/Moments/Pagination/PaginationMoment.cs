@@ -21,20 +21,25 @@ public sealed record PaginationMoment : IdleMoment<IPaginationComponentCreator>
             case "first":
                 CurrentPageIndex = 0;
                 break;
+
             case "previous":
                 CurrentPageIndex = Math.Max(0, CurrentPageIndex - 1);
                 break;
+
             case "stop":
                 Page page = Pages[CurrentPageIndex];
                 CurrentPageIndex = -1;
                 await interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, new(page.CreateMessage(this)));
                 return;
+
             case "next":
                 CurrentPageIndex = Math.Min(CurrentPageIndex + 1, Pages.Count - 1);
                 break;
+
             case "last":
                 CurrentPageIndex = Pages.Count - 1;
                 break;
+
             case "dropdown":
                 // We call trim here because the next/previous dropdown sections will have a trailing null byte
                 if (interaction.Data.Values.Length == 1 && int.TryParse(interaction.Data.Values[0].TrimEnd('\0'), out int pageIndex))

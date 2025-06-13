@@ -1,4 +1,5 @@
-﻿using DSharpPlus.Commands;
+﻿using APKonsult.Exceptions;
+using DSharpPlus.Commands;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -9,6 +10,7 @@ internal class ConfigManager
     public static readonly ConfigManager Manager = new();
 
     private const string BOT_CONFIG_PATH = $"{ChannelIDs.FILE_ROOT}/configs/bot-config.json";
+    private const string BOT_TOKENS_PATH = $"{ChannelIDs.FILE_ROOT}/configs/tokens.json";
 
     private readonly JsonSerializer _serializer;
 
@@ -16,6 +18,11 @@ internal class ConfigManager
     /// Configurations specific to the functionality of the bot
     /// </summary>
     public BotConfigModel BotConfig { get; private set; } = null!;
+
+    /// <summary>
+    /// Bot secrets.
+    /// </summary>
+    internal TokensModel Tokens { get; private set; } = null!;
 
     /// <summary>
     /// Initializes the <see cref="JsonSerializer"/> and loads all configurations.
@@ -27,19 +34,30 @@ internal class ConfigManager
     }
 
     /// <summary>
-    /// Loads <see cref="BotConfig"/> from file.
+    /// Loads <see cref="BotConfigModel"/> from file.
     /// </summary>
     /// <returns></returns>
     public void LoadBotConfig()
     {
-        BotConfigModel config = LoadConfig(BOT_CONFIG_PATH);
+        BotConfigModel? config = LoadConfig<BotConfigModel>(BOT_CONFIG_PATH);
 
-        if (Equals(config, null))
+        if (config is null)
         {
             Environment.Exit(1);
         }
 
         BotConfig = config;
+    }
+
+    /// <summary>
+    /// Loads <see cref="TokensModel"/> from file.
+    /// </summary>
+    /// <exception cref="TokenLoadException"></exception>
+    public void LoadBotTokens()
+    {
+        // The Discord webhook is also stored in this file, so the only way to know this file failed to load is 
+        // to manually look at the logs :p
+        Tokens = LoadConfig<TokensModel>(BOT_TOKENS_PATH) ?? throw new TokenLoadException(BOT_TOKENS_PATH);
     }
 
     /// <summary>
@@ -86,23 +104,23 @@ internal class ConfigManager
         }
     }
 
-    public BotConfigModel LoadConfig(string path)
+    public T LoadConfig<T>(string path) where T : class, new()
     {
         try
         {
             if (!File.Exists(path))
             {
                 Log.Information("No config file found at '{Path}'. Proceeding with default values.", path);
-                return new BotConfigModel();
+                return new T();
             }
 
             using StreamReader sReader = new(path);
             using JsonTextReader jsonReader = new(sReader);
-            BotConfigModel? config = _serializer.Deserialize<BotConfigModel>(jsonReader);
+            T? config = _serializer.Deserialize<T>(jsonReader);
 
             if (config is null)
             {
-                Log.Information($"Failed to deserialize configuration file to type {nameof(BotConfigModel)} from: {{Path}}", path);
+                Log.Information("Failed to deserialize configuration file to type {Name} from: {Path}", typeof(T).Name, path);
             }
             else
             {

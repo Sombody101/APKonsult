@@ -4,7 +4,7 @@ namespace APKonsult.Configuration;
 
 public class BotConfigModel
 {
-    public const ulong DebugChannel =
+    public const ulong DEBUG_CHANNEL =
 #if DEBUG
         ChannelIDs.CHANNEL_DEBUG; // bot-testing-debug
 #else
@@ -12,22 +12,11 @@ public class BotConfigModel
 #endif
 
     [JsonRequired]
-    [JsonProperty("bot_token")]
-    internal string BotToken { get; init; } = string.Empty;
-
-    [JsonRequired]
-    [JsonProperty("bot_token_debug")]
-    internal string DebugBotToken { get; init; } = string.Empty;
-
-    [JsonRequired]
     [JsonProperty("command_prefixes")]
     public List<string> CommandPrefixes { get; init; } = [];
 
-    [JsonProperty("webhook_url")]
-    public string DiscordWebhookUrl { get; init; } = string.Empty;
-
-    [JsonProperty("github_agent")]
-    public string GitHubUserAgent { get; init; } = string.Empty;
+    [JsonProperty("user_agent")]
+    public string UserAgent { get; init; } = string.Empty;
 
     // This likely won't be used...
     // Just a ruminant of Lloyd.

@@ -57,12 +57,12 @@ public sealed record Page
     public DiscordMessageBuilder CreateMessage(PaginationMoment data)
     {
         DiscordMessageBuilder message = new(Message);
-        return message.AddComponents(
+        return message.AddActionRowComponent(
             data.ComponentCreator.CreateFirstPageButton(data.Id, data.CurrentPageIndex, data.Pages),
             data.ComponentCreator.CreatePreviousPageButton(data.Id, data.CurrentPageIndex, data.Pages),
             data.ComponentCreator.CreateStopButton(data.Id, data.CurrentPageIndex, data.Pages),
             data.ComponentCreator.CreateNextPageButton(data.Id, data.CurrentPageIndex, data.Pages),
             data.ComponentCreator.CreateLastPageButton(data.Id, data.CurrentPageIndex, data.Pages)
-        ).AddComponents(data.ComponentCreator.CreateDropdown(data.Id, data.CurrentPageIndex, data.Pages));
+        ).AddActionRowComponent(data.ComponentCreator.CreateDropdown(data.Id, data.CurrentPageIndex, data.Pages));
     }
 }

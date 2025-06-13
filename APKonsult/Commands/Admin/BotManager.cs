@@ -10,15 +10,11 @@ using System.ComponentModel;
 
 namespace APKonsult.Commands.Admin;
 
-public class BotManager
+[Command("manager"), 
+    TextAlias("manage"), 
+    RequireBotOwner]
+public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClient)
 {
-    private readonly APKonsultContext _dbContext;
-
-    public BotManager(APKonsultContext context)
-    {
-        _dbContext = context;
-    }
-
     [Command("addadmin"),
         Description("Gives the specified user bot administrator status."),
         RequireBotOwner]
@@ -167,20 +163,20 @@ public class BotManager
         Environment.Exit(exit_code);
     }
 
+    [Command("agent")]
+    public async Task GetUserAgentAsync(CommandContext ctx)
+    {
+        string header = _httpClient.DefaultRequestHeaders.UserAgent.ToString();
+        await ctx.RespondAsync($"```\n{header}\n```");
+    }
+
     /*
      * Blacklist Commands
      */
 
     [Command("blacklist"), RequireBotOwner]
-    public class Blacklist
+    public class Blacklist(APKonsultContext _dbContext)
     {
-        private readonly APKonsultContext _dbContext;
-
-        public Blacklist(APKonsultContext context)
-        {
-            _dbContext = context;
-        }
-
         [Command("user"),
             DefaultGroupCommand]
         public async ValueTask BlacklistMemberAsync(

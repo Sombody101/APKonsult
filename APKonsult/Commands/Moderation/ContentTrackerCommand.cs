@@ -274,22 +274,22 @@ public class ContentTrackerCommand
             .WithTitle("Channel Tracking Configuration")
 
             // Config name
-            .AddComponents(new DiscordTextInputComponent("Configuration Name", configName, "My Config", isModifying
+            .AddTextInputComponent(new DiscordTextInputComponent("Configuration Name", configName, "My Config", isModifying
                 ? modifying.Name
                 : null, max_length: 70))
 
             // Source channel ID
-            .AddComponents(new DiscordTextInputComponent("Look for messages in:", targetId, "Channel ID (0 disables tracker)", isModifying
+            .AddTextInputComponent(new DiscordTextInputComponent("Look for messages in:", targetId, "Channel ID (0 disables tracker)", isModifying
                 ? modifying.SourceChannelId.ToString()
                 : null, max_length: 20))
 
             // Reporter channel ID
-            .AddComponents(new DiscordTextInputComponent("Report messages in:", reportId, "Channel ID (0 disables tracker)", isModifying
+            .AddTextInputComponent(new DiscordTextInputComponent("Report messages in:", reportId, "Channel ID (0 disables tracker)", isModifying
                 ? modifying.ReportChannelId.ToString()
                 : null, max_length: 20))
 
             // Regex string
-            .AddComponents(new DiscordTextInputComponent("Regex String", regex, "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)$", isModifying
+            .AddTextInputComponent(new DiscordTextInputComponent("Regex String", regex, "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)$", isModifying
                 ? modifying.RegexPattern
                 : null, max_length: 512, required: false));
 
