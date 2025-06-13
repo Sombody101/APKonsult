@@ -1,6 +1,7 @@
 ﻿using APKonsult.CommandChecks.Attributes;
 using APKonsult.Context;
 using APKonsult.Interactivity.Moments.Pagination;
+using APKonsult.Services;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
@@ -17,9 +18,18 @@ using Page = APKonsult.Interactivity.Moments.Pagination.Page;
 
 namespace APKonsult.Commands;
 
-public sealed partial class HelpCommand(APKonsultContext _dbContext)
+public sealed partial class HelpCommand
 {
     private const string NO_CODE_ARG = "--nocode";
+
+    private static readonly IReadOnlyList<DiscordApplicationCommand> _applicationCommands = DiscordClientService.ApplicationCommands;
+
+    private readonly APKonsultContext _dbContext;
+
+    public HelpCommand(APKonsultContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
 
     [Command("help"),
         Description($"Shows help information for commands. (Use `{NO_CODE_ARG}` to disable bot-tester information)")]
@@ -51,7 +61,7 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
                 return;
             }
 
-            await ctx.RespondAsync(await GetCommandMessageAsync(ctx, foundCommand, noCode));
+            await ctx.RespondAsync(await GetCommandInfoAsync(ctx, foundCommand, noCode));
             return;
         }
 
@@ -60,20 +70,50 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
 
     public static IEnumerable<Page> GetCommandPagesAsync(CommandContext context, Command? parentCommand = null, bool userIsAdmin = false)
     {
-        var enu = (parentCommand?.Subcommands ?? context.Extension.Commands.Values)
-            .Where(c => userIsAdmin || !c.Attributes.Any(a =>
-            {
-                Type attrType = a.GetType();
-                return attrType == typeof(RequireAdminUserAttribute)
-                    || attrType == typeof(RequireBotOwnerAttribute);
-            }))
-            .OrderBy(x => x.Name);
+        const int GROUP_MIN_THRESHOLD = 3;
+        const int GROUP_MAX_THRESHOLD = 10;
+        const string MERGED_TITLE = "Miscellaneous Commands";
 
-        List<Command> commands = [.. enu];
+        var commands = (parentCommand?.Subcommands ?? context.Extension.Commands.Values)
+            .Where(c =>
+                (userIsAdmin || !c.Attributes.Any(a => a is RequireAdminUserAttribute || a is RequireBotOwnerAttribute)) &&
+                (!c.Attributes.Any(a => a is HiddenAttribute))
+            )
+            .OrderBy(x => x.Name);
 
         IEnumerable<IGrouping<string, Command>> groupedCommands = commands.GroupBy(c => c.Method?.DeclaringType?.Name ?? "Global");
 
-        foreach (IGrouping<string, Command> group in groupedCommands)
+        List<IGrouping<string, Command>> smallGroups = [.. groupedCommands.Where(g => g.Count() <= GROUP_MIN_THRESHOLD)];
+        List<IGrouping<string, Command>> largeGroups = [.. groupedCommands.Where(g => g.Count() > GROUP_MIN_THRESHOLD)];
+        List<IGrouping<string, Command>> finalGroups = [.. largeGroups];
+
+        if (smallGroups.Count is not 0)
+        {
+            var allMergedCommands = smallGroups.SelectMany(g => g).ToList();
+
+            allMergedCommands.Sort((c1, c2) => c1.Name.CompareTo(c2.Name));
+
+            for (int i = 0; i < allMergedCommands.Count; i += GROUP_MAX_THRESHOLD)
+            {
+                List<Command> currentMergedPageCommands = [.. allMergedCommands
+                    .Skip(i)
+                    .Take(GROUP_MAX_THRESHOLD)];
+
+                string currentMergedTitle = MERGED_TITLE;
+                if (allMergedCommands.Count > GROUP_MAX_THRESHOLD)
+                {
+                    currentMergedTitle = $"{MERGED_TITLE} (Page {i / GROUP_MAX_THRESHOLD + 1})";
+                }
+
+                finalGroups.Add(new MergedGrouping(currentMergedTitle, currentMergedPageCommands));
+            }
+        }
+
+        finalGroups = [.. finalGroups
+            .OrderBy(g => g.Key is MERGED_TITLE ? 1 : 0)
+            .ThenBy(g => g.Key)];
+
+        foreach (IGrouping<string, Command> group in finalGroups)
         {
             DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
                 .WithTitle(group.Key)
@@ -83,16 +123,14 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
             {
                 string description = command.Description ?? "No description provided.";
 
-                // var methodParams = command.Method?.GetParameters();
-                // if (methodParams is not null && methodParams.Length > 0)
-                // {
-                //     var commandType = methodParams[0].ParameterType;
-                //     if (commandType == typeof(CommandContext)
-                //         || commandType == typeof(SlashCommandContext))
-                //     {
-                //         description = $"{description} | </{command.Name}:{command.GuildIds}>";
-                //     }
-                // }
+                var slashCommand = command.Subcommands.Count < 1
+                    ? _applicationCommands.FirstOrDefault(c => c.Name == command.Name)
+                    : GetDefaultSlashCommand(command);
+
+                if (slashCommand is not null)
+                {
+                    description = $"{description} | {slashCommand.Mention}";
+                }
 
                 _ = embed.AddField(command.Name.Titleize(), description);
             }
@@ -104,7 +142,7 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
         }
     }
 
-    private static async ValueTask<DiscordMessageBuilder> GetCommandMessageAsync(CommandContext context, Command command, bool noCode = false)
+    private static async ValueTask<DiscordMessageBuilder> GetCommandInfoAsync(CommandContext context, Command command, bool noCode = false)
     {
         DiscordEmbedBuilder embed = new();
 
@@ -196,9 +234,9 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
         do
         {
             spaceIndex = name.IndexOf(' ', spaceIndex + 1);
-            commandName = spaceIndex is -1
-                ? name
-                : name[..spaceIndex];
+            commandName = spaceIndex is not -1
+                ? name[..spaceIndex]
+                : name;
 
             commandName = commandName.Underscore();
 
@@ -210,18 +248,6 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
                 {
                     return GetCommand(foundCommand.Subcommands, name[(spaceIndex + 1)..]);
                 }
-
-                // // Check for default group parentCommand
-                // if (foundCommand.Method is null) // Is class
-                // {
-                //     var found_sub_command = foundCommand.Subcommands.FirstOrDefault(sub =>
-                //         sub.Method is not null
-                //             && sub.Method.GetCustomAttributes(typeof(DefaultGroupCommandAttribute), false).Length is not 0
-                //     );
-                //
-                //     if (found_sub_command is not null)
-                //         return found_sub_command;
-                // }
 
                 return foundCommand;
             }
@@ -348,6 +374,23 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
         return builder.ToString();
     }
 
+    private static Command? GetDefaultCommand(Command command)
+    {
+        return command.Subcommands.FirstOrDefault(cmd => command.Attributes.Any(a => a is DefaultGroupCommandAttribute));
+    }
+
+    private static DiscordApplicationCommand? GetDefaultSlashCommand(Command command)
+    {
+        var cmd = command.Subcommands.FirstOrDefault(cmd => command.Attributes.Any(a => a is DefaultGroupCommandAttribute));
+
+        if (cmd is null)
+        {
+            return null;
+        }
+
+        return _applicationCommands.FirstOrDefault(c => c.Name == cmd.Name);
+    }
+
     private static int CountCommands(Command command)
     {
         int count = 0;
@@ -383,5 +426,23 @@ public sealed partial class HelpCommand(APKonsultContext _dbContext)
     private static async ValueTask<bool> IncludeAdminModulesAsync(CommandContext ctx, APKonsultContext _dbContext)
     {
         return ctx.User.IsOwner() || await ctx.User.IsAdminAsync(_dbContext);
+    }
+
+    internal sealed class MergedGrouping : IGrouping<string, Command>
+    {
+        private readonly string _key;
+        private readonly List<Command> _commands;
+
+        public MergedGrouping(string key, List<Command> commands)
+        {
+            _key = key;
+            _commands = commands;
+        }
+
+        public string Key => _key;
+
+        public IEnumerator<Command> GetEnumerator() => _commands.GetEnumerator();
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
