@@ -2,7 +2,7 @@
 
 namespace APKonsult.Configuration;
 
-internal sealed class TokensModel
+internal sealed record TokensModel
 {
     [JsonRequired]
     [JsonProperty("bot_token")]
@@ -30,4 +30,10 @@ internal sealed class TokensModel
 
     [JsonProperty("lavalink_password")]
     public string LavaLinkPassword { get; init; } = string.Empty;
+
+    public override string ToString()
+    {
+        // Not that it would help with security a lot
+        return "{}";
+    }
 }

@@ -9,8 +9,6 @@ using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using Humanizer;
 using Microsoft.EntityFrameworkCore;
-using Serilog.Sinks.SystemConsole.Themes;
-using SQLitePCL;
 using System.ComponentModel;
 
 namespace APKonsult.Commands;

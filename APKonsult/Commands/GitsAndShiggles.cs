@@ -255,8 +255,9 @@ public sealed class GitsAndShiggles(HttpClient _httpClient, ILogger<GitsAndShigg
             await ctx.RespondAsync($"`i see` count increased to {count}.");
         }
 
-        [Command("seesee"), Hidden]
-        public async Task SeeSeeAsync(CommandContext ctx)
+        [Command("seesee"), 
+            Hidden]
+        public static async Task SeeSeeAsync(CommandContext ctx)
         {
             if (!await NoForYouAsync(ctx))
             {

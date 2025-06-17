@@ -21,7 +21,6 @@
 		<PackageReference Include="DSharpPlus.Commands" Version="5.0.0-nightly-02517" />
 		<PackageReference Include="DSharpPlus.Interactivity" Version="5.0.0-nightly-02517" />
 		<PackageReference Include="Humanizer.Core" Version="2.14.1" />
-		<PackageReference Include="Lavalink4NET" Version="4.0.27" />
 		<PackageReference Include="Lavalink4NET.DSharpPlus.Nightly" Version="4.0.27" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.14.0" />
@@ -62,6 +61,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Condition="'$(Configuration)'=='Debug'" Update="Binaries\Lavalink.jar">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <TargetPath>Lavalink.jar</TargetPath>
+    </None>
+
+	 <None Condition="'$(Configuration)'=='Debug'" Update="Binaries\application.yml">
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		<TargetPath>application.yml</TargetPath>
+	 </None>
     <None Update="Properties\AssemblyInfo.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>AssemblyInfo.cs</LastGenOutput>

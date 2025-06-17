@@ -2,7 +2,7 @@
 
 namespace APKonsult.Configuration;
 
-public class BotConfigModel
+public sealed record BotConfigModel
 {
     public const ulong DEBUG_CHANNEL =
 #if DEBUG
@@ -21,7 +21,7 @@ public class BotConfigModel
     // This likely won't be used...
     // Just a ruminant of Lloyd.
     [JsonProperty("repl_url")]
-    public string ReplUrl { get; init; } = Program.IS_BEBUG_GUILD
+    public string ReplUrl { get; init; } = Program.IS_DEBUG_BUILD
         ? "http://server.lan:31337/eval" // Connect to server from dev machine
         : "http://localhost:31337/eval"; // Running from server
 }

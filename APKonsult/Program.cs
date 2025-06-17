@@ -13,14 +13,14 @@ internal static class Program
 {
     public static DiscordWebhookClient WebhookClient { get; set; } = null!;
 
-    public const bool IS_BEBUG_GUILD =
+    public const bool IS_DEBUG_BUILD =
 #if DEBUG
         true;
 #else
         false;
 #endif
 
-    public const string BUILD_TYPE = IS_BEBUG_GUILD
+    public const string BUILD_TYPE = IS_DEBUG_BUILD
             ? "Debug"
             : "Release";
 
@@ -33,7 +33,9 @@ internal static class Program
                 rollingInterval: RollingInterval.Day,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
                 restrictedToMinimumLevel: LogEventLevel.Verbose
-            ).MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+            )
+            .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+            .MinimumLevel.Override("System.Net.Http", LogEventLevel.Warning)
             .CreateLogger();
 
         Log.Information($"Bot start @ {{Now}} ({BUILD_TYPE} build)", DateTime.Now);
@@ -67,9 +69,6 @@ internal static class Program
         AppDomain.CurrentDomain.ProcessExit += (e, sender) =>
         {
             Log.Information("[Exit@ {Now}] Bot shutting down.", DateTime.Now);
-
-            // Ensure all configs are saved
-            // await ConfigManager.Manager.SaveBotConfig();
         };
 
         try

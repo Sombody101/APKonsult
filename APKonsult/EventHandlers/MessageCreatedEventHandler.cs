@@ -31,13 +31,12 @@ public sealed class MessageCreatedEventHandler(APKonsultContext _dbContext, IReg
         await HandleUserEmojiReactionAsync(sender, user, eventArgs);
         await HandleTagEvent.HandleTagAsync(sender, eventArgs, _dbContext);
         await HandleAfkStatusAsync(eventArgs, user);
+        // Tracking service
+        // await _regexService.UseRegexAsync(eventArgs.Guild.Id, eventArgs.Channel.Id, eventArgs.Message);
     }
 
     private async Task HandleAfkStatusAsync(MessageCreatedEventArgs eventArgs, UserDbEntity user)
     {
-        // Tracking service
-        await _regexService.UseRegexAsync(eventArgs.Guild.Id, eventArgs.Channel.Id, eventArgs.Message);
-
         AfkStatusEntity? authorAfk = await _dbContext.Set<AfkStatusEntity>()
             .FirstOrDefaultAsync(x => x.UserId == eventArgs.Author.Id);
 

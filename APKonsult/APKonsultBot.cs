@@ -1,4 +1,5 @@
 ﻿// #define FORCE_TRACE_LOGS // Forces trace logging, even on Release builds.
+#define NO_LAVALINK
 
 using APKonsult.Configuration;
 using APKonsult.Context;
@@ -40,6 +41,10 @@ internal static partial class APKonsultBot
 
     public static Stopwatch StartupTimer { get; private set; } = null!;
 
+#if DEBUG
+    private static Process _lavalinkProcess;
+#endif
+
     public static async Task RunAsync()
     {
         StartupTimer = Stopwatch.StartNew();
@@ -61,7 +66,7 @@ internal static partial class APKonsultBot
             .UseSerilog()
             .ConfigureServices((ctx, services) =>
             {
-                services.AddLogging(logging =>
+                services.AddLogging(loggingBuilder =>
                 {
                     LogLevel logLevel =
 #if DEBUG || FORCE_TRACE_LOGS
@@ -69,10 +74,6 @@ internal static partial class APKonsultBot
 #else
                         LogLevel.Warning;
 #endif
-
-                    logging.SetMinimumLevel(logLevel)
-                        .AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning)
-                        .AddConsole();
 
                     Log.Information("Using log-level {LogLevel}", logLevel);
                 });
@@ -175,6 +176,34 @@ internal static partial class APKonsultBot
 
                 services.AddLavalink().ConfigureLavalink((config) =>
                 {
+#if DEBUG && !NO_LAVALINK
+                    if (!File.Exists("Lavalink.jar"))
+                    {
+                        Log.Warning("No Lavalink jar found in debug build directory. Lavalink will not be loaded.");
+                        return;
+                    }
+
+                    try
+                    {
+                        Environment.SetEnvironmentVariable("LAVALINK_SERVER_PASSWORD", tokens.LavaLinkPassword);
+                        _lavalinkProcess = new()
+                        {
+                            StartInfo = new()
+                            {
+                                FileName = "java.exe", // Assume it's set up on all debug machines. It is for me...
+                                Arguments = $"-jar ./Lavalink.jar"
+                            }
+                        };
+
+                        _lavalinkProcess.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Failed to start Lavalink server: {Message}", ex.Message);
+                        return;
+                    }
+#endif
+
                     string password = Environment.GetEnvironmentVariable("LAVALINK_SERVER_PASSWORD") ?? tokens.LavaLinkPassword;
 
                     if (string.IsNullOrEmpty(password))
