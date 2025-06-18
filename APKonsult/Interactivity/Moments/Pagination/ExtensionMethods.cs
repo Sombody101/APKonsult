@@ -16,7 +16,7 @@ public static class ExtensionMethods
         ArgumentNullException.ThrowIfNull(procrastinator);
         ArgumentNullException.ThrowIfNull(pages);
 
-        List<Page> pagesList = pages.ToList();
+        List<Page> pagesList = [.. pages];
         if (pagesList.Count == 1)
         {
             _ = await member.SendMessageAsync(pagesList[0].Message);
@@ -51,7 +51,7 @@ public static class ExtensionMethods
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(pages);
 
-        List<Page> pagesList = pages.ToList();
+        List<Page> pagesList = [.. pages];
         if (pagesList.Count == 1)
         {
             await context.RespondAsync(pagesList[0].Message);

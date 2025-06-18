@@ -10,6 +10,7 @@ public abstract record IdleMoment
     public DiscordMessage? Message { get; set; }
 
     public abstract ValueTask HandleAsync(Procrastinator procrastinator, DiscordInteraction interaction);
+
     public virtual async ValueTask TimedOutAsync(Procrastinator procrastinator)
     {
         // If there's a message attached, disable all components related to the data
@@ -27,11 +28,11 @@ public abstract record IdleMoment
                 // We do this because ARC has it's own overload
                 if (component is DiscordActionRowComponent row)
                 {
-                    _ = messageBuilder.AddComponents(row.Components);
+                    _ = messageBuilder.AddActionRowComponent(row.Components.Cast<DiscordButtonComponent>());
                 }
                 else
                 {
-                    _ = messageBuilder.AddComponents(component);
+                    _ = messageBuilder.AddActionRowComponent((DiscordButtonComponent)component);
                 }
             }
 

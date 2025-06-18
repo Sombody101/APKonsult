@@ -81,18 +81,27 @@ public static class Shared
     /// <returns></returns>
     public static DiscordEmbedBuilder MakeEmbedFromException(this Exception ex)
     {
-        DiscordEmbedBuilder ex_message = new DiscordEmbedBuilder()
+        string stackTrace = ex.StackTrace ?? "$NO_STACK_TRACE";
+
+        if (stackTrace.Length > 700)
+        {
+            stackTrace = "$TRACE_TOO_LARGE";
+
+            // Log the exception twice to make sure it will be seen.
+            Log.Error(ex, "Exception was too large to place im embed: {Message}", ex.Message);
+        }
+
+        DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
             .WithTitle($"Bot Exception [From {Program.BUILD_TYPE} Build]")
             .WithColor(DiscordColor.Red)
             .WithDescription(ex.Message)
-            .AddField("Exception Type", ex.GetType().Name, true)
-            .AddField("Exception Source", ex.Source ?? "$NO_EXCEPTION_SOURCE", true)
-            .AddField("HResult", ex.HResult.ToString(), true)
-            .AddField("Base", ex.TargetSite?.Name ?? "$NO_BASE_METHOD", true)
-            .AddField("Stack Trace", $"```\n{ex.StackTrace ?? "$NO_STACK_TRACE"}\n```")
+            .AddField("Exception Type", ex.GetType().Name)
+            .AddField("Exception Source", ex.Source ?? "$NO_EXCEPTION_SOURCE")
+            .AddField("Base", ex.TargetSite?.Name ?? "$NO_BASE_METHOD")
+            .AddField("Stack Trace", $"```less\n{stackTrace}\n```")
             .WithFooter($"Uptime: {PingCommand.FormatTickCount()}");
 
-        return ex_message;
+        return embed;
     }
 
     /// <summary>

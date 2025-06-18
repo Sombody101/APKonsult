@@ -1,9 +1,8 @@
 ﻿// #define FORCE_TRACE_LOGS // Forces trace logging, even on Release builds.
+#define NO_LAVALINK
 
 using APKonsult.Configuration;
 using APKonsult.Context;
-using APKonsult.EventHandlers;
-using APKonsult.Models;
 using APKonsult.Services;
 using APKonsult.Services.RegexServices;
 using DSharpPlus;
@@ -14,13 +13,13 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
 using DSharpPlus.Extensions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
+using Lavalink4NET.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,11 +27,13 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace APKonsult;
 
-internal static class APKonsultBot
+internal static partial class APKonsultBot
 {
     public const string DB_CONNECTION_STRING = $"Data Source={ChannelIDs.FILE_ROOT}/db/APKonsult-bot.db";
 
@@ -40,25 +41,23 @@ internal static class APKonsultBot
 
     public static Stopwatch StartupTimer { get; private set; } = null!;
 
+#if DEBUG
+    private static Process _lavalinkProcess;
+#endif
+
     public static async Task RunAsync()
     {
         StartupTimer = Stopwatch.StartNew();
 
         BotConfigModel config = ConfigManager.Manager.BotConfig;
+        TokensModel tokens = ConfigManager.Manager.Tokens;
 
-        string token =
-#if DEBUG
-            config.DebugBotToken;
-#else
-            config.BotToken;
-#endif
-
-        if (string.IsNullOrWhiteSpace(token))
+        if (string.IsNullOrWhiteSpace(tokens.TargetBotToken))
         {
 #if DEBUG
-            Log.Error("No bot debug token provided: '{Token}'", token);
+            Log.Error("No bot debug token provided: '{Token}'", tokens.TargetBotToken);
 #else
-            Log.Error("No bot token provided: '{Token}'", token);
+            Log.Error("No bot token provided: '{Token}'", tokens.TargetBotToken);
 #endif
             Environment.Exit(1);
         }
@@ -67,7 +66,7 @@ internal static class APKonsultBot
             .UseSerilog()
             .ConfigureServices((ctx, services) =>
             {
-                services.AddLogging(logging =>
+                services.AddLogging(loggingBuilder =>
                 {
                     LogLevel logLevel =
 #if DEBUG || FORCE_TRACE_LOGS
@@ -76,10 +75,6 @@ internal static class APKonsultBot
                         LogLevel.Warning;
 #endif
 
-                    logging.SetMinimumLevel(logLevel)
-                        .AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning)
-                        .AddConsole();
-
                     Log.Information("Using log-level {LogLevel}", logLevel);
                 });
 
@@ -87,11 +82,12 @@ internal static class APKonsultBot
                 services.AddSingleton<DiscordClientService>();
                 services.AddHostedService(s => s.GetRequiredService<DiscordClientService>());
 
-                services.AddDiscordClient(token, TextCommandProcessor.RequiredIntents
+                services.AddDiscordClient(tokens.TargetBotToken, TextCommandProcessor.RequiredIntents
                     | SlashCommandProcessor.RequiredIntents
                     | DiscordIntents.MessageContents
                     | DiscordIntents.GuildMembers
-                    | DiscordIntents.GuildEmojisAndStickers);
+                    | DiscordIntents.GuildEmojisAndStickers
+                    | DiscordIntents.GuildVoiceStates);
 
                 services.AddDbContextFactory<APKonsultContext>(
                     options =>
@@ -124,7 +120,7 @@ internal static class APKonsultBot
                     return new HttpClient()
                     {
                         DefaultRequestHeaders = {
-                            { "User-Agent", config.GitHubUserAgent }
+                            { "User-Agent", FormatUserAgentHeader(config.UserAgent) }
                         }
                     };
                 });
@@ -178,6 +174,55 @@ internal static class APKonsultBot
 
                 services.AddInteractivityExtension(interactivityConfig);
 
+                services.AddLavalink().ConfigureLavalink((config) =>
+                {
+#if DEBUG && !NO_LAVALINK
+                    if (!File.Exists("Lavalink.jar"))
+                    {
+                        Log.Warning("No Lavalink jar found in debug build directory. Lavalink will not be loaded.");
+                        return;
+                    }
+
+                    try
+                    {
+                        Environment.SetEnvironmentVariable("LAVALINK_SERVER_PASSWORD", tokens.LavaLinkPassword);
+                        _lavalinkProcess = new()
+                        {
+                            StartInfo = new()
+                            {
+                                FileName = "java.exe", // Assume it's set up on all debug machines. It is for me...
+                                Arguments = $"-jar ./Lavalink.jar"
+                            }
+                        };
+
+                        _lavalinkProcess.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Failed to start Lavalink server: {Message}", ex.Message);
+                        return;
+                    }
+#endif
+
+                    string password = Environment.GetEnvironmentVariable("LAVALINK_SERVER_PASSWORD") ?? tokens.LavaLinkPassword;
+
+                    if (string.IsNullOrEmpty(password))
+                    {
+                        Log.Warning("No LavaLink password found in the environment or tokens.json! LavaLink will not work without this!");
+                        return;
+                    }
+
+                    config.Passphrase = password;
+                    config.Label = $"LavaLink-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+
+                    string? llPort = Environment.GetEnvironmentVariable("LAVALINK_PORT");
+                    if (!string.IsNullOrWhiteSpace(llPort))
+                    {
+                        // LL4Net should give a default value, so only set this is the environment has a port defined.
+                        config.BaseAddress = new($"http://localhost:{llPort}");
+                    }
+                });
+
                 Services = services.BuildServiceProvider();
             })
             .RunConsoleAsync();
@@ -197,16 +242,6 @@ internal static class APKonsultBot
         _ = cfg.HandleGuildCreated(async (client, args) =>
         {
             await Task.Run(() => Log.Information("Joined guild: {Name} (id {Id})", args.Guild.Name, args.Guild.Id));
-        });
-
-        _ = cfg.HandleGuildMemberRemoved(async (client, args) =>
-        {
-            // My server
-            if (!Program.IS_BEBUG_GUILD && args.Guild.Id == ChannelIDs.DEBUG_GUILD_ID)
-            {
-                DiscordChannel channel = await client.GetChannelAsync(ChannelIDs.CHANNEL_GENERAL);
-                _ = await channel.SendMessageAsync($"{args.Member.Mention} left the server!");
-            }
         });
 
         _ = cfg.HandleGuildAvailable(async (client, sender) =>
@@ -230,7 +265,7 @@ internal static class APKonsultBot
 #if DEBUG
         if (e.Context.User.Id is ChannelIDs.ABSOLUTE_ADMIN)
         {
-            await sender.Client.SendMessageAsync(await sender.Client.GetChannelAsync(BotConfigModel.DebugChannel), ex.MakeEmbedFromException());
+            await sender.Client.SendMessageAsync(await sender.Client.GetChannelAsync(BotConfigModel.DEBUG_CHANNEL), ex.MakeEmbedFromException());
         }
 #endif
 
@@ -295,4 +330,32 @@ internal static class APKonsultBot
                 break;
         }
     }
+
+    private static string FormatUserAgentHeader(string sourceHeader)
+    {
+        Assembly assembly = typeof(APKonsultBot).Assembly;
+        Dictionary<string, string> formatValues = new()
+        {
+            { "version", assembly.GetName().Version!.ToString() },
+            { "osv", Environment.OSVersion.ToString() },
+            { "buildtype", Program.BUILD_TYPE },
+            // I don't see any reason for this to be anything other than x64, but it's nice to have.
+            { "arch", RuntimeInformation.ProcessArchitecture.ToString() }
+        };
+
+        return TemplateRegex().Replace(sourceHeader, match =>
+        {
+            string key = match.Groups[1].Value;
+
+            if (formatValues.TryGetValue(key, out string? value))
+            {
+                return value;
+            }
+
+            return match.Value;
+        });
+    }
+
+    [GeneratedRegex(@"{(\w+)}")]
+    private static partial Regex TemplateRegex();
 }
