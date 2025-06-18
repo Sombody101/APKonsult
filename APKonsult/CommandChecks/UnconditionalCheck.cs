@@ -16,8 +16,9 @@ public class UnconditionalCheck : IContextCheck<UnconditionalCheckAttribute>
 
     public ValueTask<string?> ExecuteCheckAsync(UnconditionalCheckAttribute attribute, CommandContext context)
     {
+        ulong guildid = context.Guild?.Id ?? 0;
         BlacklistedDbEntity? blacklistedEntity = _dbContext.Set<BlacklistedDbEntity>()
-            .Where(bl => bl.UserId == context.User.Id || bl.GuildId == context.Guild.Id)
+            .Where(bl => bl.UserId == context.User.Id || bl.GuildId == guildid)
             .FirstOrDefault();
 
         if (blacklistedEntity is null)
@@ -27,7 +28,7 @@ public class UnconditionalCheck : IContextCheck<UnconditionalCheckAttribute>
         }
 
         return blacklistedEntity.UserId is 0
-            ? ValueTask.FromResult<string?>("This guild has been banned from APKonsult!\n" + blacklistedEntity.BanReason())
-            : ValueTask.FromResult<string?>("You were banned from using APKonsult!\n" + blacklistedEntity.BanReason());
+            ? ValueTask.FromResult<string?>($"This guild has been banned from APKonsult!\n{blacklistedEntity.BanReason()}")
+            : ValueTask.FromResult<string?>($"You were banned from using APKonsult!\n{blacklistedEntity.BanReason()}");
     }
 }
