@@ -23,6 +23,7 @@ services:
         command: --http-api-update --interval 240
         environment:
             - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_HTTP_API_TOKEN}
+            - WATCHTOWER_CLEANUP=true
         ports:
             - '4302:4302'
 
