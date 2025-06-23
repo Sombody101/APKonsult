@@ -20,7 +20,7 @@ services:
         image: containrrr/watchtower
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
-        command: --http-api-update --interval 240
+        command: --http-api-update --interval 14400
         environment:
             - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_HTTP_API_TOKEN}
             - WATCHTOWER_CLEANUP=true
