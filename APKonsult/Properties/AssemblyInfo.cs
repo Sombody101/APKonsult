@@ -1,10 +1,10 @@
 ﻿using System.Reflection;
 
-/* Generated on Tuesday, June 17, 2025 05:50:00 PM */
-[assembly: AssemblyVersion("2025.06.17.1750")]
-[assembly: AssemblyFileVersion("2025.06.17.1750")]
+/* Generated on Monday, June 23, 2025 04:30:19 PM */
+[assembly: AssemblyVersion("2025.06.23.1630")]
+[assembly: AssemblyFileVersion("2025.06.23.1630")]
 #if DEBUG
-[assembly: AssemblyInformationalVersion("DEBUG+2025.06.17.1750 RC1.4")]
+[assembly: AssemblyInformationalVersion("DEBUG+2025.06.23.1630 RC1.4")]
 #else
-[assembly: AssemblyInformationalVersion("RELEASE+2025.06.17.1750 RC1.4")]
+[assembly: AssemblyInformationalVersion("RELEASE+2025.06.23.1630 RC1.4")]
 #endif
