@@ -8,6 +8,8 @@ using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using System.ComponentModel;
 using System.Net.Http.Headers;
+using DSharpPlus.Commands.Processors.TextCommands;
+
 
 
 #if RELEASE
@@ -405,7 +407,7 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
     public sealed class SecretsManager(TokensModel tokens)
     {
         [Command("secret"), Hidden, RequireBotOwner]
-        public async Task SecretlyShowSecretAsync(CommandContext ctx, string item)
+        public async Task SecretlyShowSecretAsync(TextCommandContext ctx, string item)
         {
             if (string.IsNullOrWhiteSpace(item))
             {

@@ -9,7 +9,7 @@ public sealed record TokensModel
     {
         string? enTtoken = Environment.GetEnvironmentVariable("WATCHTOWER_HTTP_API_TOKEN")?.Trim();
 
-        if (string.IsNullOrWhiteSpace(enTtoken) || enTtoken.Length is not 512)
+        if (string.IsNullOrWhiteSpace(enTtoken) || enTtoken.Length < 16)
         {
             Log.Warning("WATCHTOWER_HTTP_API_TOKEN is null or an invalid length. Watchtower manipulation commands will not work.");
             WatchtowerToken = string.Empty;
