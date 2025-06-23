@@ -7,6 +7,8 @@ using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using System.ComponentModel;
+using System.Net.Http.Headers;
+
 
 #if RELEASE
 using Microsoft.Extensions.Logging;
@@ -361,6 +363,8 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
                 await ctx.DeferResponseAsync();
 
                 using var request = new HttpRequestMessage(HttpMethod.Post, WATCHTOWER_URL);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
                 var response = await _httpClient.SendAsync(request);
 
                 if (!response.IsSuccessStatusCode)
