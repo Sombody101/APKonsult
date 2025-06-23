@@ -11,6 +11,7 @@ services:
             # Prevents CultureNotFoundException on container start
             - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
             - LAVALINK_SERVER_PASSWORD=${LAVALINK_SERVER_PASSWORD}
+            - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_HTTP_API_TOKEN}
         restart: unless-stopped
         user: 1001:1001
 
@@ -19,19 +20,24 @@ services:
         image: containrrr/watchtower
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
-        command: --interval 240 # Four ~~hours~~ *minutes*
+        command: --http-api-update --interval 240
+        environment:
+            - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_HTTP_API_TOKEN}
+        ports:
+            - '4302:4302'
 
     # Music server (I have no idea how I managed this on past bots. I think I might have just manually spawned a Java instance?)
-    lavalink:
-        image: fredboat/lavalink:latest
-        container_name: lavalink
-        restart: unless-stopped
-        ports:
-            - "2333:2333"
-        environment:
-            - LAVALINK_SERVER_PASSWORD=${LAVALINK_SERVER_PASSWORD}
-            - LAVALINK_SERVER_PORT=${LAVALINK_SERVER_PORT:-2333}
-            - LAVALINK_SERVER_ENCODING=${LAVALINK_SERVER_ENCODING:-UTF-8}
-            - JAVA_OPTS=-Xmx512M -Xms256M
-        volumes:
-            - ./lavalink-data:/opt/Lavalink/data
+    # DISABLED for now, until I figure out why LL4Net won't bind with DSP.
+    # lavalink:
+    #     image: fredboat/lavalink:latest
+    #     container_name: lavalink
+    #     restart: unless-stopped
+    #     ports:
+    #         - "2333:2333"
+    #     environment:
+    #         - LAVALINK_SERVER_PASSWORD=${LAVALINK_SERVER_PASSWORD}
+    #         - LAVALINK_SERVER_PORT=${LAVALINK_SERVER_PORT:-2333}
+    #         - LAVALINK_SERVER_ENCODING=${LAVALINK_SERVER_ENCODING:-UTF-8}
+    #         - JAVA_OPTS=-Xmx512M -Xms256M
+    #     volumes:
+    #         - ./lavalink-data:/opt/Lavalink/data
