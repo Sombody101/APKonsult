@@ -8,10 +8,14 @@ using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using System.ComponentModel;
 
+#if RELEASE
+using Microsoft.Extensions.Logging;
+#endif
+
 namespace APKonsult.Commands.Admin;
 
-[Command("manager"), 
-    TextAlias("manage"), 
+[Command("manager"),
+    TextAlias("manage"),
     RequireBotOwner]
 public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClient)
 {
@@ -175,7 +179,7 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
      */
 
     [Command("blacklist"), RequireBotOwner]
-    public class Blacklist(APKonsultContext _dbContext)
+    public sealed class BlacklistManager(APKonsultContext _dbContext)
     {
         [Command("user"),
             DefaultGroupCommand]
@@ -320,5 +324,76 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
 
             await ctx.RespondAsync($"{guild.Name} has been removed from the blacklist.");
         }
+    }
+
+    [Command("update"), RequireBotOwner]
+    public sealed class UpdateManager(
+#if RELEASE
+        HttpClient _httpClient, TokensModel tokens, ILogger<UpdateManager> _logger
+#endif
+        )
+    {
+        [Command("update"), TextAlias("upgrade"), DefaultGroupCommand, RequireBotOwner]
+#if DEBUG
+        public static async Task InvokeWatchtowerUpdateAsync(CommandContext ctx)
+        {
+            await ctx.RespondAsync("Updates are only available on release builds.");
+        }
+#else
+        public async Task InvokeWatchtowerUpdateAsync(CommandContext ctx)
+        {
+            const string WATCHTOWER_URL = $"http://localhost:{"4302"}/"; // Interpolation just to shut up the analyzer
+            string token = tokens.WatchtowerToken;
+
+            if (token == string.Empty)
+            {
+                await ctx.RespondAsync(new DiscordEmbedBuilder()
+                    .WithTitle("Update failed.")
+                    .WithDescription("No Watchtower token set.")
+                    .WithColor(DiscordColor.Red)
+                );
+
+                return;
+            }
+
+            try
+            {
+                await ctx.DeferResponseAsync();
+
+                using var request = new HttpRequestMessage(HttpMethod.Post, WATCHTOWER_URL);
+                var response = await _httpClient.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    await ctx.RespondAsync(new DiscordEmbedBuilder()
+                        .WithTitle("Request Failed")
+                        .AddField("Status Code", response.StatusCode.ToString())
+                        .AddField("Response", await response.Content.ReadAsStringAsync())
+                    );
+                }
+
+                // If it even lasts long enough to send this...
+                await ctx.RespondAsync(new DiscordEmbedBuilder()
+                    .WithTitle("Update Triggered")
+                    .AddField("Response", await response.Content.ReadAsStringAsync())
+               );
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "HTTP Request Exception: Could not connect to Watchtower API");
+                await ctx.RespondAsync(new DiscordEmbedBuilder()
+                    .WithTitle("Request Failed")
+                    .WithDescription(ex.Message)
+                    .WithColor(DiscordColor.Red)
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error.");
+                await ctx.RespondAsync($"Unexpected error: {ex.Message}");
+                await ex.LogToWebhookAsync();
+            }
+        }
+#endif
     }
 }
