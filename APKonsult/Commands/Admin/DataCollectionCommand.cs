@@ -2,6 +2,7 @@
 using APKonsult.Context;
 using APKonsult.Models;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -49,7 +50,7 @@ public sealed class DataCollectionCommand(APKonsultContext _dbContext)
         await ctx.RespondAsync($"Found and added {newCount}.");
     }
 
-    [Command("collect")]
+    [Command("collect"), TextAlias("extract")]
     public async Task CollectGuildUsersAsync(CommandContext ctx)
     {
         if (ctx.Guild is null)
@@ -66,7 +67,10 @@ public sealed class DataCollectionCommand(APKonsultContext _dbContext)
             allDbUsers,
             guildMember => guildMember.Id,
             dbUser => dbUser.Id,
-            (DiscordMember guildMember, UserDbEntity dbUser) => new { GuildMember = guildMember, DbEntity = dbUser }
+            (guildMember, dbUser) => new { 
+                GuildMember = guildMember, 
+                DbEntity = dbUser 
+            }
         );
 
         int updateCount = 0;
