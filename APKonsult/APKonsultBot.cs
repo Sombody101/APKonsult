@@ -33,7 +33,7 @@ using System.Text.RegularExpressions;
 
 namespace APKonsult;
 
-internal static partial class APKonsultBot
+internal static partial class APKonsultServiceBuilder
 {
     public const string DB_CONNECTION_STRING = $"Data Source={ChannelIDs.FILE_ROOT}/db/APKonsult-bot.db";
 
@@ -109,7 +109,8 @@ internal static partial class APKonsultBot
                     Log.Information(cacheInfo.ToString());
                 });
 
-                services.AddSingleton(new AllocationRateTracker());
+                services.AddSingleton(new AllocationRateTracker())
+                    .AddSingleton(tokens);
 
                 // Tracking regex cache and service
                 services.AddScoped<IRegexCache, RegexCache>();
@@ -333,7 +334,7 @@ internal static partial class APKonsultBot
 
     private static string FormatUserAgentHeader(string sourceHeader)
     {
-        Assembly assembly = typeof(APKonsultBot).Assembly;
+        Assembly assembly = typeof(APKonsultServiceBuilder).Assembly;
         Dictionary<string, string> formatValues = new()
         {
             { "version", assembly.GetName().Version!.ToString() },

@@ -29,7 +29,7 @@ public class APKonsultContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        _ = optionsBuilder.UseSqlite(APKonsultBot.DB_CONNECTION_STRING);
+        _ = optionsBuilder.UseSqlite(APKonsultServiceBuilder.DB_CONNECTION_STRING);
 
 #if DEBUG
         optionsBuilder.EnableSensitiveDataLogging();

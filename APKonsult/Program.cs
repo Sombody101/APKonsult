@@ -74,7 +74,7 @@ internal static class Program
         try
         {
             // Start the bot
-            await APKonsultBot.RunAsync();
+            await APKonsultServiceBuilder.RunAsync();
         }
         catch (TaskCanceledException)
         {
@@ -97,7 +97,7 @@ internal static class Program
         IHostBuilder builder = Host.CreateDefaultBuilder(args);
 
         _ = builder.ConfigureServices((_, services) => services.AddDbContextFactory<APKonsultContext>(
-            options => options.UseSqlite(APKonsultBot.DB_CONNECTION_STRING)
+            options => options.UseSqlite(APKonsultServiceBuilder.DB_CONNECTION_STRING)
         ));
 
         return builder;

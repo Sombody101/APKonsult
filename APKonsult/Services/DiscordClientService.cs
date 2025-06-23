@@ -60,15 +60,15 @@ internal class DiscordClientService : IHostedService
 
         try
         {
-            System.Reflection.Assembly assembly = typeof(APKonsultBot).Assembly;
+            System.Reflection.Assembly assembly = typeof(APKonsultServiceBuilder).Assembly;
 
-            APKonsultBot.StartupTimer.Stop();
+            APKonsultServiceBuilder.StartupTimer.Stop();
 
             DiscordEmbedBuilder init_embed = new DiscordEmbedBuilder()
                 .WithTitle("APKonsult Bot Active")
                 .WithColor(DiscordColor.SpringGreen)
-                .AddField("Start time", $"{APKonsultBot.StartupTimer.ElapsedMilliseconds:n0}ms", true)
-                .AddField("Tick count", $"{APKonsultBot.StartupTimer.ElapsedTicks:n0} ticks", true)
+                .AddField("Start time", $"{APKonsultServiceBuilder.StartupTimer.ElapsedMilliseconds:n0}ms", true)
+                .AddField("Tick count", $"{APKonsultServiceBuilder.StartupTimer.ElapsedTicks:n0} ticks", true)
                 .AddField("Bot version", $"v{assembly.GetName().Version}", true)
                 .AddField("Build type", $"***{Program.BUILD_TYPE}***", true)
                 .AddField("Runtime version", $"R{assembly.ImageRuntimeVersion}", true)
