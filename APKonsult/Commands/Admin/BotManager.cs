@@ -7,18 +7,23 @@ using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using System.ComponentModel;
+using System.Net.Http.Headers;
+using DSharpPlus.Commands.Processors.TextCommands;
+using APKonsult.Helpers;
+
+
+
+#if RELEASE
+using Microsoft.Extensions.Logging;
+#endif
 
 namespace APKonsult.Commands.Admin;
 
-public class BotManager
+[Command("manager"),
+    TextAlias("manage"),
+    RequireBotOwner]
+public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClient)
 {
-    private readonly APKonsultContext _dbContext;
-
-    public BotManager(APKonsultContext context)
-    {
-        _dbContext = context;
-    }
-
     [Command("addadmin"),
         Description("Gives the specified user bot administrator status."),
         RequireBotOwner]
@@ -167,20 +172,20 @@ public class BotManager
         Environment.Exit(exit_code);
     }
 
+    [Command("agent")]
+    public async Task GetUserAgentAsync(CommandContext ctx)
+    {
+        string header = _httpClient.DefaultRequestHeaders.UserAgent.ToString();
+        await ctx.RespondAsync($"```\n{header}\n```");
+    }
+
     /*
      * Blacklist Commands
      */
 
     [Command("blacklist"), RequireBotOwner]
-    public class Blacklist
+    public sealed class BlacklistManager(APKonsultContext _dbContext)
     {
-        private readonly APKonsultContext _dbContext;
-
-        public Blacklist(APKonsultContext context)
-        {
-            _dbContext = context;
-        }
-
         [Command("user"),
             DefaultGroupCommand]
         public async ValueTask BlacklistMemberAsync(
@@ -323,6 +328,109 @@ public class BotManager
             _ = await _dbContext.SaveChangesAsync();
 
             await ctx.RespondAsync($"{guild.Name} has been removed from the blacklist.");
+        }
+    }
+
+    [Command("update"), RequireBotOwner]
+    public sealed class UpdateManager(
+#if RELEASE
+        HttpClient _httpClient, TokensModel tokens, ILogger<UpdateManager> _logger
+#endif
+        )
+    {
+        [Command("update"), TextAlias("upgrade"), DefaultGroupCommand, RequireBotOwner]
+#if DEBUG
+        public static async Task InvokeWatchtowerUpdateAsync(CommandContext ctx)
+        {
+            await ctx.RespondAsync("Updates are only available on release builds.");
+        }
+#else
+        public async Task InvokeWatchtowerUpdateAsync(CommandContext ctx)
+        {
+            const string WATCHTOWER_URL = $"http://localhost:{"4302"}/v1/update"; // Interpolation just to shut up the analyzer
+            string token = tokens.WatchtowerToken;
+
+            if (token == string.Empty)
+            {
+                await ctx.RespondAsync(new DiscordEmbedBuilder()
+                    .WithTitle("Update failed.")
+                    .WithDescription("No Watchtower token set.")
+                    .WithColor(DiscordColor.Red)
+                );
+
+                return;
+            }
+
+            try
+            {
+                await ctx.DeferResponseAsync();
+
+                using var request = new HttpRequestMessage(HttpMethod.Post, WATCHTOWER_URL);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                var response = await _httpClient.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    await ctx.RespondAsync(new DiscordEmbedBuilder()
+                        .WithTitle("Request Failed")
+                        .AddField("Status Code", response.StatusCode.ToString())
+                        .AddField("Response", await response.Content.ReadAsStringAsync())
+                    );
+                }
+
+                // If it even lasts long enough to send this...
+                await ctx.RespondAsync(new DiscordEmbedBuilder()
+                    .WithTitle("Update Triggered")
+                    .AddField("Response", await response.Content.ReadAsStringAsync())
+               );
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "HTTP Request Exception: Could not connect to Watchtower API");
+                await ctx.RespondAsync(new DiscordEmbedBuilder()
+                    .WithTitle("Request Failed")
+                    .WithDescription(ex.Message)
+                    .WithColor(DiscordColor.Red)
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error.");
+                await ctx.RespondAsync($"Unexpected error: {ex.Message}");
+                await ex.LogToWebhookAsync();
+            }
+        }
+#endif
+    }
+
+    [Command("secret"), TextAlias("secrets"), Hidden, RequireBotOwner]
+    public sealed class SecretsManager(TokensModel tokens)
+    {
+        [Command("get"), TextAlias("print"), DefaultGroupCommand, Hidden, RequireBotOwner]
+        public async Task SecretlyShowSecretAsync(TextCommandContext ctx, string item)
+        {
+            if (string.IsNullOrWhiteSpace(item))
+            {
+                await ctx.RespondAsync("Unexpected error.");
+                return;
+            }
+
+            string token = item switch
+            {
+                "bottoken" => tokens.TargetBotToken,
+                "watchtoken" => tokens.WatchtowerToken,
+                "lavatoken" => tokens.LavaLinkPassword,
+                _ => "[NONE]"
+            };
+
+            var dm = await ctx.GetDmChannelAsync();
+            await dm.SendMessageAsync(new DiscordEmbedBuilder()
+                .WithTitle("Token")
+                .WithDescription(token)
+                .AddField("Size", $"{GBConverter.FormatSizeFromBytes(token.Length)} ({token.Length:n})")
+                .WithColor(DiscordColor.Red)
+            );
         }
     }
 }

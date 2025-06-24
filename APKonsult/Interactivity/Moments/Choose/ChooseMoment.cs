@@ -20,7 +20,7 @@ public record ChooseMoment : IdleMoment<IChooseComponentCreator>
 
         DiscordInteractionResponseBuilder responseBuilder = new(new DiscordMessageBuilder(interaction.Message));
         responseBuilder.ClearComponents();
-        _ = responseBuilder.AddComponents(interaction.Message.Components.Mutate<DiscordSelectComponent>(
+        var components = interaction.Message.Components.Mutate<DiscordSelectComponent>(
             select => select.CustomId.StartsWith(Id.ToString(), StringComparison.Ordinal),
             select =>
             {
@@ -38,7 +38,12 @@ public record ChooseMoment : IdleMoment<IChooseComponentCreator>
 
                 return new DiscordSelectComponent(select.CustomId, select.Placeholder, options, true, select.MinimumSelectedValues ?? 1, select.MaximumSelectedValues ?? 1);
             }
-        ).Cast<DiscordActionRowComponent>());
+        ).Cast<DiscordActionRowComponent>();
+
+        foreach (var component in components)
+        {
+            responseBuilder.AddActionRowComponent(component);
+        }
 
         await interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, responseBuilder);
     }

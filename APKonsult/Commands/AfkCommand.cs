@@ -35,6 +35,7 @@ public class AfkCommand
         {
             AfkEpoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             AfkMessage = status,
+            User = dbuser
         };
 
         dbuser.AfkStatus = afkStatus;

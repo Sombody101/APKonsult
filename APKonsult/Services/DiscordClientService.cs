@@ -18,6 +18,8 @@ internal class DiscordClientService : IHostedService
 
     public DiscordClient Client => _client;
 
+    public static IReadOnlyList<DiscordApplicationCommand> ApplicationCommands { get; private set; }
+
     private readonly DiscordClient _client;
 
     public DiscordClientService
@@ -54,27 +56,29 @@ internal class DiscordClientService : IHostedService
         DiscordActivity status = new("for some commands", DiscordActivityType.Watching);
         await Client.ConnectAsync(status);
 
+        ApplicationCommands = await Client.GetGlobalApplicationCommandsAsync();
+
         try
         {
-            System.Reflection.Assembly assembly = typeof(APKonsultBot).Assembly;
+            System.Reflection.Assembly assembly = typeof(APKonsultServiceBuilder).Assembly;
 
-            APKonsultBot.StartupTimer.Stop();
+            APKonsultServiceBuilder.StartupTimer.Stop();
 
             DiscordEmbedBuilder init_embed = new DiscordEmbedBuilder()
                 .WithTitle("APKonsult Bot Active")
                 .WithColor(DiscordColor.SpringGreen)
-                .AddField("Start time", $"{APKonsultBot.StartupTimer.ElapsedMilliseconds:n0}ms", true)
-                .AddField("Tick count", $"{APKonsultBot.StartupTimer.ElapsedTicks:n0} ticks", true)
+                .AddField("Start time", $"{APKonsultServiceBuilder.StartupTimer.ElapsedMilliseconds:n0}ms", true)
+                .AddField("Tick count", $"{APKonsultServiceBuilder.StartupTimer.ElapsedTicks:n0} ticks", true)
                 .AddField("Bot version", $"v{assembly.GetName().Version}", true)
                 .AddField("Build type", $"***{Program.BUILD_TYPE}***", true)
                 .AddField("Runtime version", $"R{assembly.ImageRuntimeVersion}", true)
                 .MakeWide();
 
-            _ = await Client.SendMessageAsync(await Client.GetChannelAsync(BotConfigModel.DebugChannel), init_embed);
+            _ = await Client.SendMessageAsync(await Client.GetChannelAsync(BotConfigModel.DEBUG_CHANNEL), init_embed);
         }
         catch (Exception ex)
         {
-            Log.Information(ex, "Failed to send message to debug guild channel: {DebugChannel}", BotConfigModel.DebugChannel);
+            Log.Information(ex, "Failed to send message to debug guild channel: {DebugChannel}", BotConfigModel.DEBUG_CHANNEL);
             await ex.LogToWebhookAsync();
         }
     }
