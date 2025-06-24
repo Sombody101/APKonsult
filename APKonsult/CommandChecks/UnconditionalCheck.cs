@@ -5,19 +5,12 @@ using DSharpPlus.Commands.ContextChecks;
 
 namespace APKonsult.CommandChecks;
 
-public class UnconditionalCheck : IContextCheck<UnconditionalCheckAttribute>
+public class UnconditionalCheck(APKonsultContext dbContext) : IContextCheck<UnconditionalCheckAttribute>
 {
-    private readonly APKonsultContext _dbContext;
-
-    public UnconditionalCheck(APKonsultContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public ValueTask<string?> ExecuteCheckAsync(UnconditionalCheckAttribute attribute, CommandContext context)
     {
-        ulong guildid = context.Guild?.Id ?? 0;
-        BlacklistedDbEntity? blacklistedEntity = _dbContext.Set<BlacklistedDbEntity>()
+        ulong guildid = context.Guild?.Id ?? ulong.MaxValue;
+        BlacklistedDbEntity? blacklistedEntity = dbContext.Set<BlacklistedDbEntity>()
             .Where(bl => bl.UserId == context.User.Id || bl.GuildId == guildid)
             .FirstOrDefault();
 
