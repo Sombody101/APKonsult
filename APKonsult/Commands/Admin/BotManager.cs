@@ -9,6 +9,7 @@ using DSharpPlus.Entities;
 using System.ComponentModel;
 using System.Net.Http.Headers;
 using DSharpPlus.Commands.Processors.TextCommands;
+using APKonsult.Helpers;
 
 
 
@@ -403,10 +404,10 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
 #endif
     }
 
-    [Hidden, RequireBotOwner]
+    [Command("secret"), TextAlias("secrets"), Hidden, RequireBotOwner]
     public sealed class SecretsManager(TokensModel tokens)
     {
-        [Command("secret"), Hidden, RequireBotOwner]
+        [Command("get"), TextAlias("print"), DefaultGroupCommand, Hidden, RequireBotOwner]
         public async Task SecretlyShowSecretAsync(TextCommandContext ctx, string item)
         {
             if (string.IsNullOrWhiteSpace(item))
@@ -423,8 +424,13 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
                 _ => "[NONE]"
             };
 
-            var dm = await ctx.User.CreateDmChannelAsync();
-            await dm.SendMessageAsync($"```{token}```");
+            var dm = await ctx.GetDmChannelAsync();
+            await dm.SendMessageAsync(new DiscordEmbedBuilder()
+                .WithTitle("Token")
+                .WithDescription(token)
+                .AddField("Size", $"{GBConverter.FormatSizeFromBytes(token.Length)} ({token.Length:n})")
+                .WithColor(DiscordColor.Red)
+            );
         }
     }
 }
