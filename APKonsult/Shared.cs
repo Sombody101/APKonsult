@@ -2,6 +2,7 @@
 using APKonsult.Context;
 using APKonsult.Services;
 using DSharpPlus;
+using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -276,5 +277,18 @@ public static class Shared
         }
 
         return code is not null;
+    }
+}
+
+public static class ChannelHelpers
+{
+    public static async Task<DiscordChannel> GetDmChannelAsync(this CommandContext ctx)
+    {
+        if (ctx.Channel.GuildId is null)
+        {
+            return ctx.Channel;
+        }
+
+        return await ctx.User.CreateDmChannelAsync();
     }
 }
