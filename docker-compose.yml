@@ -24,6 +24,8 @@ services:
         environment:
             - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_HTTP_API_TOKEN}
             - WATCHTOWER_CLEANUP=true
+        ports:
+            - '4302:8080'
 
     # Music server (I have no idea how I managed this on past bots. I think I might have just manually spawned a Java instance?)
     # DISABLED for now, until I figure out why LL4Net won't bind with DSP.

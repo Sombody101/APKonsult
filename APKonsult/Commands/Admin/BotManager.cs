@@ -347,7 +347,7 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
 #else
         public async Task InvokeWatchtowerUpdateAsync(CommandContext ctx)
         {
-            const string WATCHTOWER_URL = $"http://localhost:{"8080"}/v1/update"; // Interpolation just to shut up the analyzer
+            const string WATCHTOWER_URL = $"http://localhost:{"4302"}/v1/update"; // Interpolation just to shut up the analyzer
             string token = tokens.WatchtowerToken;
 
             if (token == string.Empty)
