@@ -383,7 +383,7 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
                 await ctx.RespondAsync(new DiscordEmbedBuilder()
                     .WithTitle("Update Triggered")
                     .AddField("Response", await response.Content.ReadAsStringAsync())
-               );
+                );
             }
             catch (HttpRequestException ex)
             {
