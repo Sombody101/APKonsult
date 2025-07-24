@@ -1,11 +1,5 @@
-﻿using APKonsult.CommandChecks.Attributes;
-using APKonsult.Context;
-using DSharpPlus;
-using DSharpPlus.Commands;
-using DSharpPlus.Commands.Trees.Metadata;
+﻿using DSharpPlus.Commands;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
-using Humanizer;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.ComponentModel;
