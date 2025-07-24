@@ -251,8 +251,6 @@ internal static partial class APKonsultServiceBuilder
         });
 
         _ = cfg.HandleZombied(async (client, args) => await client.ReconnectAsync());
-
-        _ = cfg.HandleGuildAvailable(async (client, args) => await Task.Run(() => Log.Information("Guild available: {Name}", args.Guild.Name)));
     }
 
     private static async Task HandleCommandErroredAsync(CommandsExtension sender, CommandErroredEventArgs e)
