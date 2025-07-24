@@ -105,6 +105,16 @@ public static class Shared
         return embed;
     }
 
+    public static DiscordEmbedBuilder AddDefaultField(this DiscordEmbedBuilder builder, string name, string value, string defaultValue = "[None]", bool inline = false)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            value = defaultValue;
+        }
+
+        return builder.AddField(name, value, inline);
+    }
+
     /// <summary>
     /// Adds a transparent image to the given <paramref name="embed"/> that makes the whole embed wider.
     /// </summary>
@@ -114,7 +124,7 @@ public static class Shared
     {
         if (embed.ImageUrl is null)
         {
-            _ = embed.WithImageUrl("https://files.forsaken-borders.net/transparent.png");
+            _ = embed.WithImageUrl($"https://files.forsaken-borders.net/transparent.png");
         }
 
         return embed;
@@ -284,11 +294,6 @@ public static class ChannelHelpers
 {
     public static async Task<DiscordChannel> GetDmChannelAsync(this CommandContext ctx)
     {
-        if (ctx.Channel.GuildId is null)
-        {
-            return ctx.Channel;
-        }
-
-        return await ctx.User.CreateDmChannelAsync();
+        return ctx.Channel.GuildId is null ? ctx.Channel : await ctx.User.CreateDmChannelAsync();
     }
 }

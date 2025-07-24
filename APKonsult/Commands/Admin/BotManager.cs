@@ -374,15 +374,15 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
                 {
                     await ctx.RespondAsync(new DiscordEmbedBuilder()
                         .WithTitle("Request Failed")
-                        .AddField("Status Code", response.StatusCode.ToString())
-                        .AddField("Response", await response.Content.ReadAsStringAsync())
+                        .AddDefaultField("Status Code", response.StatusCode.ToString())
+                        .AddDefaultField("Response", await response.Content.ReadAsStringAsync())
                     );
                 }
 
                 // If it even lasts long enough to send this...
                 await ctx.RespondAsync(new DiscordEmbedBuilder()
                     .WithTitle("Update Triggered")
-                    .AddField("Response", await response.Content.ReadAsStringAsync())
+                    .AddDefaultField("Response", await response.Content.ReadAsStringAsync())
                 );
             }
             catch (HttpRequestException ex)
