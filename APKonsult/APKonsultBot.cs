@@ -19,7 +19,6 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using Humanizer;
-using Lavalink4NET.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -40,10 +39,6 @@ internal static partial class APKonsultServiceBuilder
     public static IServiceProvider Services { get; private set; } = null!;
 
     public static Stopwatch StartupTimer { get; private set; } = null!;
-
-#if DEBUG
-    private static Process _lavalinkProcess;
-#endif
 
     public static async Task RunAsync()
     {
@@ -174,55 +169,6 @@ internal static partial class APKonsultServiceBuilder
                 };
 
                 services.AddInteractivityExtension(interactivityConfig);
-
-                services.AddLavalink().ConfigureLavalink((config) =>
-                {
-#if DEBUG && !NO_LAVALINK
-                    if (!File.Exists("Lavalink.jar"))
-                    {
-                        Log.Warning("No Lavalink jar found in debug build directory. Lavalink will not be loaded.");
-                        return;
-                    }
-
-                    try
-                    {
-                        Environment.SetEnvironmentVariable("LAVALINK_SERVER_PASSWORD", tokens.LavaLinkPassword);
-                        _lavalinkProcess = new()
-                        {
-                            StartInfo = new()
-                            {
-                                FileName = "java.exe", // Assume it's set up on all debug machines. It is for me...
-                                Arguments = $"-jar ./Lavalink.jar"
-                            }
-                        };
-
-                        _lavalinkProcess.Start();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Failed to start Lavalink server: {Message}", ex.Message);
-                        return;
-                    }
-#endif
-
-                    string password = Environment.GetEnvironmentVariable("LAVALINK_SERVER_PASSWORD") ?? tokens.LavaLinkPassword;
-
-                    if (string.IsNullOrEmpty(password))
-                    {
-                        Log.Warning("No LavaLink password found in the environment or tokens.json! LavaLink will not work without this!");
-                        return;
-                    }
-
-                    config.Passphrase = password;
-                    config.Label = $"LavaLink-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
-
-                    string? llPort = Environment.GetEnvironmentVariable("LAVALINK_PORT");
-                    if (!string.IsNullOrWhiteSpace(llPort))
-                    {
-                        // LL4Net should give a default value, so only set this is the environment has a port defined.
-                        config.BaseAddress = new($"http://localhost:{llPort}");
-                    }
-                });
 
                 Services = services.BuildServiceProvider();
             })

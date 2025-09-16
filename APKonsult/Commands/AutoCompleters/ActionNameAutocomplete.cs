@@ -23,7 +23,7 @@ internal class ActionNameAutocomplete(APKonsultContext _dbContext) : IAutoComple
             .Where(x => x.ActionName.Contains(context.UserInput, StringComparison.OrdinalIgnoreCase));
 
         return !actions.Any()
-            ? ([])
+            ? []
             : actions
             .Take(25)
             .Select(x => new DiscordAutoCompleteChoice(x.ActionName, x.ActionName));

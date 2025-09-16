@@ -95,7 +95,7 @@ public static class InfoCommand
         // If the user has a color, set it.
         if (!member.Color.Equals(default(DiscordColor)))
         {
-            embedBuilder.Color = member.Color;
+            embedBuilder.Color = member.Color.PrimaryColor;
         }
 
         await ctx.RespondAsync(embedBuilder);

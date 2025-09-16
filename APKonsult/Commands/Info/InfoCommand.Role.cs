@@ -27,12 +27,12 @@ public partial class InfoCommand
                 IconUrl = context.User.AvatarUrl,
                 Url = context.User.AvatarUrl
             },
-            Color = role.Color.Value == 0x000000
+            Color = role.Colors.PrimaryColor.Value == 0x000000
                 ? Shared.DefaultEmbedColor
-                : role.Color
+                : role.Colors.PrimaryColor
         };
 
-        _ = embedBuilder.AddField("Color", role.Color.ToString(), true);
+        _ = embedBuilder.AddField("Color", role.Colors.PrimaryColor.ToString(), true);
         _ = embedBuilder.AddField("Created At", Formatter.Timestamp(role.CreationTimestamp.UtcDateTime, TimestampFormat.LongDateTime), true);
         _ = embedBuilder.AddField("Hoisted", role.IsHoisted.ToString(), true);
         _ = embedBuilder.AddField("Is Managed", role.IsManaged.ToString(), true);
@@ -42,7 +42,7 @@ public partial class InfoCommand
         _ = embedBuilder.AddField("Role Position", role.Position.ToString("N0", CultureInfo.InvariantCulture), true);
         _ = embedBuilder.AddField("Permissions", role.Permissions == DiscordPermissions.None
             ? "No permissions."
-            : role.Permissions.ToString() + ".", false);
+            : $"{role.Permissions}.", false);
 
         await context.RespondAsync(embedBuilder);
     }

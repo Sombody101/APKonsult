@@ -275,22 +275,22 @@ public class ContentTrackerCommand
 
             // Config name
             .AddTextInputComponent(new DiscordTextInputComponent("Configuration Name", configName, "My Config", isModifying
-                ? modifying.Name
+                ? modifying!.Name
                 : null, max_length: 70))
 
             // Source channel ID
             .AddTextInputComponent(new DiscordTextInputComponent("Look for messages in:", targetId, "Channel ID (0 disables tracker)", isModifying
-                ? modifying.SourceChannelId.ToString()
+                ? modifying!.SourceChannelId.ToString()
                 : null, max_length: 20))
 
             // Reporter channel ID
             .AddTextInputComponent(new DiscordTextInputComponent("Report messages in:", reportId, "Channel ID (0 disables tracker)", isModifying
-                ? modifying.ReportChannelId.ToString()
+                ? modifying!.ReportChannelId.ToString()
                 : null, max_length: 20))
 
             // Regex string
             .AddTextInputComponent(new DiscordTextInputComponent("Regex String", regex, "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)$", isModifying
-                ? modifying.RegexPattern
+                ? modifying!.RegexPattern
                 : null, max_length: 512, required: false));
 
         await ctx.Interaction.CreateResponseAsync(DiscordInteractionResponseType.Modal, modal);

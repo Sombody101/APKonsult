@@ -420,7 +420,6 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
             {
                 "bottoken" => tokens.TargetBotToken,
                 "watchtoken" => tokens.WatchtowerToken,
-                "lavatoken" => tokens.LavaLinkPassword,
                 _ => "[NONE]"
             };
 

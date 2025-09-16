@@ -43,9 +43,6 @@ public sealed record TokensModel
     [JsonProperty("webhook_url")]
     internal string DiscordWebhookUrl { get; init; } = string.Empty;
 
-    [JsonProperty("lavalink_password")]
-    public string LavaLinkPassword { get; init; } = string.Empty;
-
     [JsonIgnore]
     public string WatchtowerToken { get; }
 
