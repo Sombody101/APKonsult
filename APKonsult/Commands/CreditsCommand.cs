@@ -1,4 +1,5 @@
-﻿using APKonsult.CommandChecks.Attributes;
+﻿using APKonsult.CommandChecks;
+using APKonsult.CommandChecks.Attributes;
 using APKonsult.Context;
 using APKonsult.Models;
 using DSharpPlus.Commands;
@@ -7,16 +8,9 @@ using DSharpPlus.Entities;
 
 namespace APKonsult.Commands;
 
-public class CreditsCommand
+public class CreditsCommand(APKonsultContext _dbContext)
 {
-    private readonly APKonsultContext _dbContext;
-
-    public CreditsCommand(APKonsultContext _db)
-    {
-        _dbContext = _db;
-    }
-
-    [Command("credits"), TextAlias("credit")]
+    [Command("credits"), TextAlias("credit"), UserGuildInstallable]
     public async ValueTask ShowCreditsAsync(CommandContext ctx)
     {
         DiscordEmbedBuilder embed = new DiscordEmbedBuilder()

@@ -1,6 +1,7 @@
 ﻿// #define FORCE_TRACE_LOGS // Forces trace logging, even on Release builds.
 #define NO_LAVALINK
 
+using APKonsult.CommandChecks;
 using APKonsult.Configuration;
 using APKonsult.Context;
 using APKonsult.Services;
@@ -152,10 +153,17 @@ internal static partial class APKonsultServiceBuilder
                         PrefixResolver = new DefaultPrefixResolver(true, [.. config.CommandPrefixes]).ResolvePrefixAsync,
                     }));
 
+
                     Assembly assembly = typeof(Program).Assembly;
                     cmdExt.AddCommands(assembly);
                     cmdExt.AddChecks(assembly);
                     cmdExt.CommandErrored += HandleCommandErroredAsync;
+
+#if DEBUG
+                    var types = assembly.GetTypes().SelectMany(t => t.GetMethods())
+                        .Where(m => m.GetCustomAttribute<CommandAttribute>() is not null && m.GetCustomAttribute<UserGuildInstallableAttribute>() is null);
+                    Log.Logger.Warning($"{{Count}} commands do not have {nameof(UserGuildInstallableAttribute)}", types.Count());
+#endif
                 }, cConfig);
 
                 InteractivityConfiguration interactivityConfig = new()

@@ -1,4 +1,5 @@
-﻿using DSharpPlus.Commands;
+﻿using APKonsult.CommandChecks;
+using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using System.Diagnostics;
 using System.Globalization;
@@ -9,7 +10,7 @@ namespace APKonsult.Commands;
 
 public static class ShipCommand
 {
-    [Command("ship")]
+    [Command("ship"), UserGuildInstallable]
     public static async ValueTask ShipAsync(CommandContext ctx, DiscordUser user1, DiscordUser user2, bool showHashes = false)
     {
         await ctx.DeferResponseAsync();

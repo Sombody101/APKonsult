@@ -1,5 +1,7 @@
-﻿using DSharpPlus.Commands;
+﻿using APKonsult.CommandChecks;
+using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
+using DSharpPlus.Commands.Processors.SlashCommands.Metadata;
 using DSharpPlus.Entities;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -10,10 +12,11 @@ namespace APKonsult.Commands;
 public static class PingCommand
 {
     [Command("ping"),
-        Description("Pings the bot and returns the gateway latency.")]
+        Description("Pings the bot and returns the gateway latency."),
+        UserGuildInstallable]
     public static async Task PingAsync(CommandContext ctx)
     {
-        TimeSpan latency = ctx.Client.GetConnectionLatency(ctx.Guild!.Id);
+        TimeSpan latency = ctx.Client.GetConnectionLatency(ctx.Guild?.Id ?? ctx.Channel.Id);
 
         await ctx.RespondAsync(embed: new DiscordEmbedBuilder()
             .WithTitle(Random.Shared.Next() % 3948 == 0
@@ -24,7 +27,8 @@ public static class PingCommand
     }
 
     [Command("uptime"),
-        Description("Get the bots uptime")]
+        Description("Get the bots uptime"),
+        UserGuildInstallable]
     public static async Task UptimeAsync(CommandContext ctx)
     {
         await ctx.RespondAsync(embed: new DiscordEmbedBuilder()
@@ -34,7 +38,8 @@ public static class PingCommand
     }
 
     [Command("echo"),
-        Description("Makes the bot create a message with your text")]
+        Description("Makes the bot create a message with your text"),
+        UserGuildInstallable]
     public static async Task EchoAsync(
         CommandContext ctx,
 
@@ -51,7 +56,8 @@ public static class PingCommand
     }
 
     [Command("embed"),
-        Description("The same as 'echo', but prints the text in an embed")]
+        Description("The same as 'echo', but prints the text in an embed"),
+        UserGuildInstallable]
     public static async Task EchoEmbedAsync(
         CommandContext ctx,
 

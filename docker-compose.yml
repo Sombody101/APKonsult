@@ -28,18 +28,15 @@ services:
             - "4302:8080"
         restart: unless-stopped
 
-    # Music server (I have no idea how I managed this on past bots. I think I might have just manually spawned a Java instance?)
-    # DISABLED for now, until I figure out why LL4Net won't bind with DSP.
-    # lavalink:
-    #     image: fredboat/lavalink:latest
-    #     container_name: lavalink
-    #     restart: unless-stopped
-    #     ports:
-    #         - "2333:2333"
-    #     environment:
-    #         - LAVALINK_SERVER_PASSWORD=${LAVALINK_SERVER_PASSWORD}
-    #         - LAVALINK_SERVER_PORT=${LAVALINK_SERVER_PORT:-2333}
-    #         - LAVALINK_SERVER_ENCODING=${LAVALINK_SERVER_ENCODING:-UTF-8}
-    #         - JAVA_OPTS=-Xmx512M -Xms256M
-    #     volumes:
-    #         - ./lavalink-data:/opt/Lavalink/data
+    repl-cs-compiler:
+        image: ghcr.io/discord-csharp/csharprepl:latest
+        restart: always
+        read_only: true
+        user: www-data
+        environment:
+            - ASPNETCORE_URLS=http://+:31337
+        ports:
+            - "31337:31337"
+        tmpfs:
+            - /tmp
+            - /var

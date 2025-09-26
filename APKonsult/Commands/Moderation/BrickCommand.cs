@@ -3,7 +3,6 @@ using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Serilog;
-using Serilog.Core;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 

@@ -1,4 +1,5 @@
-﻿using DSharpPlus.Commands;
+﻿using APKonsult.CommandChecks;
+using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
@@ -6,28 +7,28 @@ using Humanizer;
 
 namespace APKonsult.Commands;
 
-[Command("humanize")]
+[Command("humanize"), UserGuildInstallable]
 public static class HumanizerCommand
 {
-    [Command("text"), DefaultGroupCommand]
+    [Command("text"), DefaultGroupCommand, UserGuildInstallable]
     public static async ValueTask HumanizeAsync(CommandContext ctx, [RemainingText] string text)
     {
         await ctx.RespondAsync(await HumanizeTextAsync(text));
     }
 
-    [Command("title")]
+    [Command("title"), UserGuildInstallable]
     public static async ValueTask HumanizeTitleAsync(CommandContext ctx, [RemainingText] string text)
     {
         await ctx.RespondAsync(await HumanizeTextAsync(text, LetterCasing.Title));
     }
 
-    [Command("caps")]
+    [Command("caps"), UserGuildInstallable]
     public static async ValueTask HumanizeCapsAsync(CommandContext ctx, [RemainingText] string text)
     {
         await ctx.RespondAsync(await HumanizeTextAsync(text, LetterCasing.AllCaps));
     }
 
-    [Command("lower"), TextAlias("low")]
+    [Command("lower"), TextAlias("low"), UserGuildInstallable]
     public static async ValueTask HumanizeLowerAsync(CommandContext ctx, [RemainingText] string text)
     {
         await ctx.RespondAsync(await HumanizeTextAsync(text, LetterCasing.LowerCase));

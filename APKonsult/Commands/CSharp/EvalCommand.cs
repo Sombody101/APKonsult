@@ -1,4 +1,5 @@
-﻿using APKonsult.CommandChecks.Attributes;
+﻿using APKonsult.CommandChecks;
+using APKonsult.CommandChecks.Attributes;
 using APKonsult.EventHandlers;
 using DSharpPlus;
 using DSharpPlus.Commands;
@@ -103,10 +104,13 @@ public static class EvalCommand
     /// <param name="code"></param>
     /// <returns></returns>
     [Command("eval"),
-        RequireAdminUser,
-        MadeBy(Creator.Lunar)]
-    public static async ValueTask ExecuteAsync(CommandContext context, [FromCode] string code)
+        RequireBotOwner,
+        MadeBy(Creator.Lunar),
+        UserGuildInstallable]
+    public static async ValueTask ExecuteAsync(CommandContext context, string code)
     {
+        Shared.TryRemoveCodeBlock(code, CodeType.All, out code!);
+
         await context.DeferResponseAsync();
         Script<object> script = CSharpScript.Create(code, _evalOptions, typeof(EvalContext));
         ImmutableArray<Diagnostic> errors = script.Compile();

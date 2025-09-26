@@ -1,4 +1,5 @@
-﻿using APKonsult.CommandChecks.Attributes;
+﻿using APKonsult.CommandChecks;
+using APKonsult.CommandChecks.Attributes;
 using APKonsult.Context;
 using APKonsult.Interactivity.Moments.Pagination;
 using APKonsult.Services;
@@ -32,7 +33,8 @@ public sealed partial class HelpCommand
     }
 
     [Command("help"),
-        Description($"Shows help information for commands. (Use `{NO_CODE_ARG}` to disable bot-tester information)")]
+        Description($"Shows help information for commands. (Use `{NO_CODE_ARG}` to disable bot-tester information)"),
+        UserGuildInstallable]
     public async ValueTask ExecuteAsync(
         CommandContext ctx,
 

@@ -8,7 +8,7 @@ using System.Globalization;
 
 namespace APKonsult.Commands;
 
-public static class InfoCommand
+public static class UserInfoCommand
 {
     /// <summary>
     /// Sends information about the provided user.

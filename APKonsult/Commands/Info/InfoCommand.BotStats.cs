@@ -2,6 +2,7 @@
 using APKonsult.Services;
 using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors.SlashCommands.Metadata;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using DSharpPlus.Entities;
@@ -30,6 +31,7 @@ public partial class InfoCommand
 
     [Command("bot"),
         Description("Get statistics about the bot"),
+        InteractionInstallType(DiscordApplicationIntegrationType.UserInstall, DiscordApplicationIntegrationType.GuildInstall),
         MadeBy(Creator.Lunar)]
     public async Task GetBotStatsAsync(CommandContext ctx)
     {
@@ -94,7 +96,7 @@ public partial class InfoCommand
             .AddField("DSharpPlus Library Version", _dSharpPlusVersion, true);
 
         DiscordInteractionResponseBuilder responseBuilder = new DiscordInteractionResponseBuilder()
-            .AddEmbed(embedBuilder).AsEphemeral();
+            .AddEmbed(embedBuilder);
 
         await ctx.RespondAsync(responseBuilder);
     }

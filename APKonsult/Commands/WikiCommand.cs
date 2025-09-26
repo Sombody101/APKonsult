@@ -1,4 +1,5 @@
-﻿using DSharpPlus.Commands;
+﻿using APKonsult.CommandChecks;
+using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using System.ComponentModel;
 
@@ -8,7 +9,7 @@ public static class WikiCommand
 {
     public const string APKOGNITO_DOCS_URL = "https://apkognito.win";
 
-    [Command("docs"), Description("Make APKonsult respond with a link to the APKognito docs page.")]
+    [Command("docs"), Description("Make APKonsult respond with a link to the APKognito docs page."), UserGuildInstallable]
     public static async ValueTask SendWikiAsync(
         CommandContext ctx,
 

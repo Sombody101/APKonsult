@@ -1,4 +1,5 @@
-﻿using APKonsult.CommandChecks.Attributes;
+﻿using APKonsult.CommandChecks;
+using APKonsult.CommandChecks.Attributes;
 using APKonsult.Configuration;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
@@ -32,7 +33,7 @@ public static class ComplexEvalCommand
         public string ReturnTypeName { get; set; } = string.Empty;
     }
 
-    [Command("cs"), RequireAdminUser]
+    [Command("cs"), RequireAdminUser, UserGuildInstallable]
     public static async Task EvaluateCSharpAsync(TextCommandContext ctx, [FromCode] string code)
     {
         if (ctx.Channel is null || ctx.User is not DiscordMember)
