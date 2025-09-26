@@ -3,6 +3,7 @@ using APKonsult.CommandChecks.Attributes;
 using APKonsult.Configuration;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
+using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Entities;
 using Humanizer;
@@ -34,7 +35,7 @@ public static class ComplexEvalCommand
     }
 
     [Command("cs"), RequireAdminUser, UserGuildInstallable]
-    public static async Task EvaluateCSharpAsync(TextCommandContext ctx, [FromCode] string code)
+    public static async Task EvaluateCSharpAsync(CommandContext ctx, string code)
     {
         if (ctx.Channel is null || ctx.User is not DiscordMember)
         {
@@ -47,7 +48,7 @@ public static class ComplexEvalCommand
                 .WithTitle("REPL Executing")
                 .WithAuthor(ctx.User.Username)
                 .WithColor(DiscordColor.Orange)
-                .WithDescription($"Compiling and Executing [your code]({ctx.Message.JumpLink})...")
+                .WithDescription($"Compiling and Executing...")
                 .Build());
 
         StringContent content = new(code, Encoding.UTF8, "text/plain");
@@ -85,13 +86,12 @@ public static class ComplexEvalCommand
         }
     }
 
-    private static async Task ModifyOrSendErrorEmbedAsync(string error, TextCommandContext ctx, DiscordMessage? message = null)
+    private static async Task ModifyOrSendErrorEmbedAsync(string error, CommandContext ctx, DiscordMessage? message = null)
     {
         DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
             .WithTitle("REPL Error")
             .WithAuthor(ctx.User.Username)
             .WithColor(DiscordColor.Red)
-            .AddField("Tried to execute", $"[this code]({ctx.Message.JumpLink})")
             .WithDescription(error);
 
         if (message is null)
