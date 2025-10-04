@@ -19,12 +19,16 @@ public class CreditsCommand(APKonsultContext _dbContext)
 
         _ = embed.AddField("Bot Daddy", GetUserMention(ctx, MadeByAttribute.Me), true)
             .AddField("Codebase & Info Commands", GetUserMention(ctx, MadeByAttribute.Lunar), true)
-            .AddField("Database Layout & Host Services", GetUserMention(ctx, MadeByAttribute.Plerx), true)
-            .AddField("Regex Emotional Support", GetUserMention(ctx, MadeByAttribute.Velvet), true);
+            .AddField("Database Layout & Host Services", GetUserMention(ctx, MadeByAttribute.Plerx), true);
 
-        _ = embed.AddField("Bot Testers", string.Join('\n', _dbContext.Set<UserDbEntity>()
+        var testers = _dbContext.Set<UserDbEntity>()
             .Where(user => user.IsBotAdmin)
-            .Select(user => GetUserMention(ctx, user.Id))), true);
+            .Select(user => GetUserMention(ctx, user.Id));
+
+        if (testers.Any())
+        {
+            _ = embed.AddField("Bot Testers", string.Join('\n', testers), true);
+        }
 
         _ = embed.WithDescription("Check the bot progress at the (GitHub)[https://github.com/Sombody101/APKonsult.git] page!");
 

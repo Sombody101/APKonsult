@@ -76,33 +76,65 @@ public static class Shared
     }
 
     /// <summary>
-    /// Turns the given <see cref="Exception"/> <paramref name="ex"/> into a formatted <see cref="DiscordEmbedBuilder"/>.
+    /// Turns the given <see cref="Exception"/> <paramref name="exception"/> into a formatted <see cref="DiscordEmbedBuilder"/>.
     /// </summary>
     /// <param name="ex"></param>
     /// <returns></returns>
-    public static DiscordEmbedBuilder MakeEmbedFromException(this Exception ex)
+    public static IEnumerable<DiscordEmbedBuilder> MakeEmbedFromException(this Exception exception)
     {
-        string stackTrace = ex.StackTrace ?? "$NO_STACK_TRACE";
+        Exception? ex = exception;
 
-        if (stackTrace.Length > 700)
+        do
         {
-            stackTrace = "$TRACE_TOO_LARGE";
+            DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
+                .WithTitle($"Bot Exception [From {Program.BUILD_TYPE} Build]")
+                .WithColor(DiscordColor.Red)
+                .AddField("Exception Type", ex.GetType().Name)
+                .AddField("Exception Source", ex.Source ?? "[no exception source]")
+                .AddField("Base", ex.TargetSite?.Name ?? "[no base method]")
+                .WithFooter($"Uptime: {PingCommand.FormatTickCount()}");
 
-            // Log the exception twice to make sure it will be seen.
-            Log.Error(ex, "Exception was too large to place im embed: {Message}", ex.Message);
+            string description = ex.Message;
+
+            if (ex.StackTrace?.Length < 4096 - 13 - description.Length)
+            {
+                description = $"{description}\n```less\n{ex.StackTrace}\n```";
+                embed.WithDescription(description);
+                yield return embed;
+            }
+            else
+            {
+                yield return embed;
+
+                foreach (var stackEmbed in GetEmbedStackTrace(ex))
+                {
+                    yield return stackEmbed;
+                }
+            }
+        } while ((ex = ex?.InnerException) is not null);
+    }
+
+    private static IEnumerable<DiscordEmbedBuilder> GetEmbedStackTrace(Exception ex)
+    {
+        string? trace = ex.StackTrace;
+        if (string.IsNullOrWhiteSpace(trace))
+        {
+            yield break;
         }
 
-        DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
-            .WithTitle($"Bot Exception [From {Program.BUILD_TYPE} Build]")
-            .WithColor(DiscordColor.Red)
-            .WithDescription(ex.Message)
-            .AddField("Exception Type", ex.GetType().Name)
-            .AddField("Exception Source", ex.Source ?? "$NO_EXCEPTION_SOURCE")
-            .AddField("Base", ex.TargetSite?.Name ?? "$NO_BASE_METHOD")
-            .AddField("Stack Trace", $"```less\n{stackTrace}\n```")
-            .WithFooter($"Uptime: {PingCommand.FormatTickCount()}");
+        const int MAX_CHARS = 4096 - 12;
+        int count = (int)Math.Ceiling(trace.Length / (float)MAX_CHARS);
+        for (int i = 0; i < count; ++i)
+        {
+            int start = i * MAX_CHARS;
+            int length = start + Math.Min(trace.Length - start, MAX_CHARS);
+            string description = $"```less\n{trace[start..length]}\n```";
 
-        return embed;
+            yield return new DiscordEmbedBuilder()
+                .WithTitle($"{i + 1}/{count}")
+                .WithDescription(description)
+                .WithColor(DiscordColor.Red);
+        }
     }
 
     public static DiscordEmbedBuilder AddDefaultField(this DiscordEmbedBuilder builder, string name, string value, string defaultValue = "[None]", bool inline = false)
@@ -177,8 +209,7 @@ public static class Shared
 
         DiscordWebhookBuilder webhookBuilder = new DiscordWebhookBuilder()
             .WithUsername($"APKonsult-{Program.BUILD_TYPE}")
-            .AddEmbed(ex.MakeEmbedFromException()
-                .WithFooter($"From: {sender?.Name ?? "$NO_MODULE_PASSED"}\nUptime: {PingCommand.FormatTickCount()}"));
+            .AddEmbed(ex.MakeEmbedFromException().Take(1).First().WithFooter($"From: {sender?.Name ?? "$NO_MODULE_PASSED"}\nUptime: {PingCommand.FormatTickCount()}"));
 
         _ = await Program.WebhookClient.BroadcastMessageAsync(webhookBuilder);
     }

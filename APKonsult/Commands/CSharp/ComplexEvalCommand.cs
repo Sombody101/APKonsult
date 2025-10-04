@@ -2,9 +2,7 @@
 using APKonsult.CommandChecks.Attributes;
 using APKonsult.Configuration;
 using DSharpPlus.Commands;
-using DSharpPlus.Commands.ArgumentModifiers;
-using DSharpPlus.Commands.Processors.SlashCommands;
-using DSharpPlus.Commands.Processors.TextCommands;
+using DSharpPlus.Commands.Processors.SlashCommands.Metadata;
 using DSharpPlus.Entities;
 using Humanizer;
 using Newtonsoft.Json;
@@ -15,7 +13,7 @@ using Formatter = DSharpPlus.Formatter;
 
 namespace APKonsult.Commands.CSharp;
 
-public static class ComplexEvalCommand
+public static partial class ComplexEvalCommand
 {
     private const int MaxFormattedFieldSize = 1000;
     private const int MaxFieldNameLength = 256;
@@ -34,10 +32,13 @@ public static class ComplexEvalCommand
         public string ReturnTypeName { get; set; } = string.Empty;
     }
 
-    [Command("cs"), RequireAdminUser, UserGuildInstallable]
+    [Command("cs"),
+        RequireAdminUser,
+        UserGuildInstallable,
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async Task EvaluateCSharpAsync(CommandContext ctx, string code)
     {
-        if (ctx.Channel is null || ctx.User is not DiscordMember)
+        if (ctx.Channel is null)
         {
             await ModifyOrSendErrorEmbedAsync("The REPL can only be executed in public guild channels.", ctx);
             return;
@@ -137,7 +138,7 @@ public static class ComplexEvalCommand
 
         if (hasException)
         {
-            string diffFormatted = Regex.Replace(parsedResult.Exception, "^", "- ", RegexOptions.Multiline);
+            string diffFormatted = DiffGenerationRegex().Replace(parsedResult.Exception, "- ");
             _ = embed.AddField($"Exception: {parsedResult.ExceptionType}".Truncate(MaxFieldNameLength),
                 Formatter.BlockCode(diffFormatted.Truncate(MaxFormattedFieldSize), "diff"));
         }
@@ -151,4 +152,7 @@ public static class ComplexEvalCommand
             ? "```\n```"
             : Formatter.BlockCode(input, language);
     }
+
+    [GeneratedRegex("^", RegexOptions.Multiline)]
+    private static partial Regex DiffGenerationRegex();
 }

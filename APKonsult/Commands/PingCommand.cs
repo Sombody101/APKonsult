@@ -13,7 +13,8 @@ public static class PingCommand
 {
     [Command("ping"),
         Description("Pings the bot and returns the gateway latency."),
-        UserGuildInstallable]
+        UserGuildInstallable, 
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async Task PingAsync(CommandContext ctx)
     {
         TimeSpan latency = ctx.Client.GetConnectionLatency(ctx.Guild?.Id ?? ctx.Channel.Id);
@@ -28,7 +29,8 @@ public static class PingCommand
 
     [Command("uptime"),
         Description("Get the bots uptime"),
-        UserGuildInstallable]
+        UserGuildInstallable, 
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async Task UptimeAsync(CommandContext ctx)
     {
         await ctx.RespondAsync(embed: new DiscordEmbedBuilder()
@@ -39,7 +41,8 @@ public static class PingCommand
 
     [Command("echo"),
         Description("Makes the bot create a message with your text"),
-        UserGuildInstallable]
+        UserGuildInstallable, 
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async Task EchoAsync(
         CommandContext ctx,
 
@@ -57,7 +60,8 @@ public static class PingCommand
 
     [Command("embed"),
         Description("The same as 'echo', but prints the text in an embed"),
-        UserGuildInstallable]
+        UserGuildInstallable, 
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async Task EchoEmbedAsync(
         CommandContext ctx,
 

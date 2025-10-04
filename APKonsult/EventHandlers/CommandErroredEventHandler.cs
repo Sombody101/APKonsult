@@ -8,7 +8,7 @@ using Humanizer;
 
 namespace APKonsult.EventHandlers;
 
-public sealed class CommandErroredEventHandler
+public sealed class CommandErroredEventHandler : IEventHandler<CommandErroredEventArgs>
 {
     public static async Task OnErroredAsync(CommandsExtension __, CommandErroredEventArgs eventArgs)
     {
@@ -52,14 +52,21 @@ public sealed class CommandErroredEventHandler
     private static string FormatStackTrace(string? text)
     {
         return string.IsNullOrWhiteSpace(text)
-        ? "No stack trace available."
-        : string.Join('\n', text.Split('\n').Select(line => ReplaceFirst(line.Trim(), "at", "-")));
+            ? "No stack trace available."
+            : string.Join('\n', text.Split('\n').Select(line => ReplaceFirst(line.Trim(), "at", "-")));
     }
 
     private static string ReplaceFirst(string text, string search, string replace)
     {
         ReadOnlySpan<char> textSpan = text.AsSpan();
         int pos = textSpan.IndexOf(search);
-        return pos < 0 ? text : string.Concat(textSpan[..pos], replace, textSpan[(pos + search.Length)..]);
+        return pos < 0
+            ? string.Concat(textSpan[..pos], replace, textSpan[(pos + search.Length)..])
+            : text;
+    }
+
+    public async Task HandleEventAsync(DiscordClient sender, CommandErroredEventArgs eventArgs)
+    {
+        await OnErroredAsync(null!, eventArgs);
     }
 }

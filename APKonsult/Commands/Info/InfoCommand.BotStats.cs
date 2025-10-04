@@ -1,4 +1,5 @@
-﻿using APKonsult.CommandChecks.Attributes;
+﻿using APKonsult.CommandChecks;
+using APKonsult.CommandChecks.Attributes;
 using APKonsult.Services;
 using DSharpPlus;
 using DSharpPlus.Commands;
@@ -31,7 +32,8 @@ public partial class InfoCommand
 
     [Command("bot"),
         Description("Get statistics about the bot"),
-        InteractionInstallType(DiscordApplicationIntegrationType.UserInstall, DiscordApplicationIntegrationType.GuildInstall),
+        UserGuildInstallable,
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel),
         MadeBy(Creator.Lunar)]
     public async Task GetBotStatsAsync(CommandContext ctx)
     {

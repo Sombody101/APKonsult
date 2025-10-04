@@ -28,13 +28,14 @@ public sealed class TaskRuntime
         UserData.RegistrationPolicy = InteropRegistrationPolicy.Automatic;
 
         Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(DataType.String, typeof(ulong),
-            (v) =>
-        {
-            string value = (string)v.ToObject();
-            return !value.StartsWith("id:")
-                ? null
-                : value[3..].StringToId();
-        });
+            v =>
+            {
+                string value = (string)v.ToObject();
+                return value.StartsWith("id:")
+                    ? value[3..].StringToId()
+                    : null;
+            }
+        );
 
         TextScript = script;
         InitializeLuaScript();
@@ -81,7 +82,7 @@ public sealed class TaskRuntime
                 throw new EventFiredCallbackMissingException(functionName);
             }
 
-            string scriptName = Action?.ActionName ?? "$NO_ACTION_SET";
+            string scriptName = Action?.ActionName ?? "[no action set]";
             Log.Error("No event handler method found in Lua script '{ScriptName}'", scriptName);
             return 127;
         }
@@ -180,9 +181,9 @@ public sealed class TaskRuntime
 
             object? resultValue = resultProperty.GetValue(task);
 
-            return resultValue is null
-                ? DynValue.Nil
-                : DynValue.FromObject(luaScript, resultValue);
+            return resultValue is not null
+                ? DynValue.FromObject(luaScript, resultValue)
+                : DynValue.Nil;
         }
         catch (Exception ex)
         {

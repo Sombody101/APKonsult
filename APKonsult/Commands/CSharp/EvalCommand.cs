@@ -4,6 +4,7 @@ using APKonsult.EventHandlers;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
+using DSharpPlus.Commands.Processors.SlashCommands.Metadata;
 using DSharpPlus.Entities;
 using DSharpPlus.Net.Serialization;
 using Microsoft.CodeAnalysis;
@@ -106,10 +107,16 @@ public static class EvalCommand
     [Command("eval"),
         RequireBotOwner,
         MadeBy(Creator.Lunar),
-        UserGuildInstallable]
+        UserGuildInstallable,
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async ValueTask ExecuteAsync(CommandContext context, string code)
     {
-        Shared.TryRemoveCodeBlock(code, CodeType.All, out code!);
+        Shared.TryRemoveCodeBlock(code, CodeType.All, out string? trimmedCode);
+
+        if (trimmedCode is not null)
+        {
+            code = trimmedCode;
+        }
 
         await context.DeferResponseAsync();
         Script<object> script = CSharpScript.Create(code, _evalOptions, typeof(EvalContext));

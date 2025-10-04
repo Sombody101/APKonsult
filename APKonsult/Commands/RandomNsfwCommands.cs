@@ -1,5 +1,6 @@
 ﻿using APKonsult.CommandChecks;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors.SlashCommands.Metadata;
 using DSharpPlus.Entities;
 using System.ComponentModel;
 
@@ -7,7 +8,10 @@ namespace APKonsult.Commands;
 
 public static class RandomNsfwCommands
 {
-    [Command("kill"), Description("Kill other members... with love!"), UserGuildInstallable]
+    [Command("kill"), 
+        Description("Kill other members... with love!"), 
+        UserGuildInstallable, 
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async ValueTask KillUserAsync(
         CommandContext ctx,
 
@@ -23,7 +27,9 @@ public static class RandomNsfwCommands
         await ctx.RespondAsync($"You have just killed {user.Mention} in cold blood.\nThey were a fag anyway, so it doesn't really matter.");
     }
 
-    [Command("dick"), Description("See how big your dick is!"), UserGuildInstallable]
+    [Command("dick"), Description("See how big your dick is!"), 
+        UserGuildInstallable, 
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async ValueTask DickAsync(
         CommandContext ctx,
 
@@ -38,7 +44,9 @@ public static class RandomNsfwCommands
             )} penis is {length} {"inch".Pluralize(length)} long!");
     }
 
-    [Command("height"), Description("See how tall you are!"), UserGuildInstallable]
+    [Command("height"), Description("See how tall you are!"), 
+        UserGuildInstallable, 
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async ValueTask HeightAsync(
         CommandContext ctx,
 
@@ -53,7 +61,9 @@ public static class RandomNsfwCommands
         )} {height / 12f:n0} {Qol.Pluralize("foot", "feet", height == 1)} tall!");
     }
 
-    [Command("weight"), Description("Fucking fatty."), UserGuildInstallable]
+    [Command("weight"), Description("Fucking fatty."), 
+        UserGuildInstallable, 
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async ValueTask WeightAsync(
         CommandContext ctx,
 
@@ -68,7 +78,9 @@ public static class RandomNsfwCommands
         )} {weight:n0} LBS!\nFatty!");
     }
 
-    [Command("jerkoff"), UserGuildInstallable]
+    [Command("jerkoff"), 
+        UserGuildInstallable, 
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async ValueTask JerkOffAsync(
         CommandContext ctx,
 

@@ -1,5 +1,6 @@
 ﻿using APKonsult.CommandChecks;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors.SlashCommands.Metadata;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -11,7 +12,7 @@ namespace APKonsult.Commands;
 
 public sealed class GitsAndShiggles(HttpClient _httpClient, ILogger<GitsAndShiggles> _logger)
 {
-    [Command("chucknorris"), Description("Get a random Chuck Norris fact"), UserGuildInstallable]
+    [Command("chucknorris"), Description("Get a random Chuck Norris fact"), UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public async Task GetChuckNorrisFactAsync(CommandContext ctx)
     {
         const string CHUCK_NORRIS_API_URL = "https://api.chucknorris.io/jokes/random";
@@ -42,7 +43,7 @@ public sealed class GitsAndShiggles(HttpClient _httpClient, ILogger<GitsAndShigg
         }
     }
 
-    [Command("dadjoke"), Description("Get a random dad joke"), UserGuildInstallable]
+    [Command("dadjoke"), Description("Get a random dad joke"), UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public async Task GetDataJokeAsync(CommandContext ctx)
     {
         const string DAD_JOKE_URL = "https://icanhazdadjoke.com/";
@@ -72,7 +73,7 @@ public sealed class GitsAndShiggles(HttpClient _httpClient, ILogger<GitsAndShigg
         }
     }
 
-    [Command("comic"), Description("Gets the daily comic"), UserGuildInstallable]
+    [Command("comic"), Description("Gets the daily comic"), UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public async Task GetDailyComicAsync(CommandContext ctx)
     {
         const string COMIC_URL = "https://xkcd.com/info.0.json";

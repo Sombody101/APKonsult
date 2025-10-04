@@ -1,34 +1,35 @@
 ﻿using APKonsult.CommandChecks;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
+using DSharpPlus.Commands.Processors.SlashCommands.Metadata;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using Humanizer;
 
 namespace APKonsult.Commands;
 
-[Command("humanize"), UserGuildInstallable]
+[Command("humanize"), UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
 public static class HumanizerCommand
 {
-    [Command("text"), DefaultGroupCommand, UserGuildInstallable]
+    [Command("text"), DefaultGroupCommand, UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async ValueTask HumanizeAsync(CommandContext ctx, [RemainingText] string text)
     {
         await ctx.RespondAsync(await HumanizeTextAsync(text));
     }
 
-    [Command("title"), UserGuildInstallable]
+    [Command("title"), UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async ValueTask HumanizeTitleAsync(CommandContext ctx, [RemainingText] string text)
     {
         await ctx.RespondAsync(await HumanizeTextAsync(text, LetterCasing.Title));
     }
 
-    [Command("caps"), UserGuildInstallable]
+    [Command("caps"), UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async ValueTask HumanizeCapsAsync(CommandContext ctx, [RemainingText] string text)
     {
         await ctx.RespondAsync(await HumanizeTextAsync(text, LetterCasing.AllCaps));
     }
 
-    [Command("lower"), TextAlias("low"), UserGuildInstallable]
+    [Command("lower"), TextAlias("low"), UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async ValueTask HumanizeLowerAsync(CommandContext ctx, [RemainingText] string text)
     {
         await ctx.RespondAsync(await HumanizeTextAsync(text, LetterCasing.LowerCase));

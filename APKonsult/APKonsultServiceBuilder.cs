@@ -2,6 +2,8 @@
 #define NO_LAVALINK
 
 using APKonsult.CommandChecks;
+using APKonsult.Commands;
+using APKonsult.Commands.Admin.TaskRunner;
 using APKonsult.Configuration;
 using APKonsult.Context;
 using APKonsult.Services;
@@ -13,6 +15,7 @@ using DSharpPlus.Commands.Exceptions;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
+using DSharpPlus.Commands.Trees;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using DSharpPlus.Extensions;
@@ -80,6 +83,7 @@ internal static partial class APKonsultServiceBuilder
 
                 services.AddDiscordClient(tokens.TargetBotToken, TextCommandProcessor.RequiredIntents
                     | SlashCommandProcessor.RequiredIntents
+                    | DiscordIntents.AllUnprivileged
                     | DiscordIntents.MessageContents
                     | DiscordIntents.GuildMembers
                     | DiscordIntents.GuildEmojisAndStickers
@@ -209,16 +213,26 @@ internal static partial class APKonsultServiceBuilder
 
     private static async Task HandleCommandErroredAsync(CommandsExtension sender, CommandErroredEventArgs e)
     {
-        string commandName = e.Context.Command?.Name ?? "$NULL";
-        string fullName = e.Context.Command?.FullName ?? "$NULL";
-        Log.Error(e.Exception, "Given command: {CommandName} [full:{FullName}]", commandName, fullName);
+        if (e.Context.Command is not null)
+        {
+            string commandName = e.Context.Command.Name;
+            string fullName = e.Context.Command.FullName;
+            Log.Error(e.Exception, "Given command: {CommandName} [full:{FullName}]", commandName, fullName);
+        }
+        else
+        {
+            Log.Error("Command not found: {Command}", e.CommandObject);
+        }
 
         Exception ex = e.Exception.InnerException ?? e.Exception;
 
 #if DEBUG
         if (e.Context.User.Id is ChannelIDs.ABSOLUTE_ADMIN)
         {
-            await sender.Client.SendMessageAsync(await sender.Client.GetChannelAsync(BotConfigModel.DEBUG_CHANNEL), ex.MakeEmbedFromException());
+            foreach (var builder in ex.MakeEmbedFromException())
+            {
+                await sender.Client.SendMessageAsync(await sender.Client.GetChannelAsync(BotConfigModel.DEBUG_CHANNEL), builder);
+            }
         }
 #endif
 

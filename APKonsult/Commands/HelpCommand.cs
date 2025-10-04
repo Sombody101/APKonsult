@@ -7,6 +7,7 @@ using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.ContextChecks;
+using DSharpPlus.Commands.Processors.SlashCommands.Metadata;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Trees;
 using DSharpPlus.Commands.Trees.Metadata;
@@ -34,7 +35,7 @@ public sealed partial class HelpCommand
 
     [Command("help"),
         Description($"Shows help information for commands. (Use `{NO_CODE_ARG}` to disable bot-tester information)"),
-        UserGuildInstallable]
+        UserGuildInstallable, InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public async ValueTask ExecuteAsync(
         CommandContext ctx,
 

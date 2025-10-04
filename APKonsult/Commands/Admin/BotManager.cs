@@ -1,17 +1,17 @@
 ﻿using APKonsult.CommandChecks.Attributes;
 using APKonsult.Configuration;
 using APKonsult.Context;
+using APKonsult.Helpers;
 using APKonsult.Models;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
+using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
-using System.Net.Http.Headers;
-using DSharpPlus.Commands.Processors.TextCommands;
-using APKonsult.Helpers;
-
-
+using System.Diagnostics.CodeAnalysis;
 
 #if RELEASE
 using Microsoft.Extensions.Logging;
@@ -331,6 +331,56 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
         }
     }
 
+
+    [Command("downloaddb"), Hidden, RequireBotOwner]
+    public async ValueTask DownloadDatabaseAsync(TextCommandContext ctx)
+    {
+        string spareName = $"{ChannelIDs.FILE_ROOT}/spare.{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}.db";
+        try
+        {
+            var sourceConnection = _dbContext.Database.GetDbConnection();
+
+            if (sourceConnection is not SqliteConnection connection)
+            {
+                await ctx.RespondAsync("Failed to get SQLiteDb connection.");
+                return;
+            }
+
+            if (connection.State is not System.Data.ConnectionState.Open)
+            {
+                await connection.OpenAsync();
+            }
+
+            var backupConnectionString = new SqliteConnectionStringBuilder
+            {
+                DataSource = spareName,
+                Pooling = false,
+            }.ToString();
+
+            using (var backupConnection = new SqliteConnection(backupConnectionString))
+            {
+                await backupConnection.OpenAsync();
+                connection.BackupDatabase(backupConnection);
+            }
+
+            using FileStream reader = File.OpenRead(spareName);
+
+            var channel = await ctx.GetDmChannelAsync();
+            await channel.SendMessageAsync(new DiscordMessageBuilder().AddFile(reader));
+        }
+        catch (Exception ex)
+        {
+            await ex.LogToWebhookAsync(this);
+        }
+        finally
+        {
+            if (File.Exists(spareName))
+            {
+                File.Delete(spareName);
+            }
+        }
+    }
+
     [Command("update"), RequireBotOwner]
     public sealed class UpdateManager(
 #if RELEASE
@@ -432,4 +482,20 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
             );
         }
     }
+
+    [Command("crash"), Hidden, RequireBotOwner, DoesNotReturn]
+    [SuppressMessage("Major Bug", "S1764:Identical expressions should not be used on both sides of operators", Justification = "No.")]
+    public static async Task TestCrashAsync(TextCommandContext ctx, int limit = 10, int count = 0)
+    {
+        if (count <= limit)
+        {
+            // Just to inflate the call stack a bit.
+            await TestCrashAsync(ctx, limit, count + 1);
+            return;
+        }
+
+        throw new TestException();
+    }
+
+    public sealed class TestException() : Exception("This is a command crash test exception.") { }
 }

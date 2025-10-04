@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors.SlashCommands.Metadata;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
@@ -14,7 +15,9 @@ public static class UserInfoCommand
     /// Sends information about the provided user.
     /// </summary>
     /// <param name="user">Which user to get information about. Leave empty to get information about yourself.</param>
-    [Command("user"), TextAlias("member")]
+    [Command("user"), 
+        TextAlias("member"),
+        InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async Task GetUserInfoAsync(CommandContext ctx, DiscordUser? user = null)
     {
         user ??= ctx.User;

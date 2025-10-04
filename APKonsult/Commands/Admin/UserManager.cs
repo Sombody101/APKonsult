@@ -54,7 +54,7 @@ public static class UserManager
 
         if (user is null)
         {
-            _ = ctx.RespondAsync("Failed to find that user!");
+            await ctx.RespondAsync("Failed to find that user!");
             return;
         }
 
