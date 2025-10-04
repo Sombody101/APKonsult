@@ -416,7 +416,7 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
                 await ctx.DeferResponseAsync();
 
                 using var request = new HttpRequestMessage(HttpMethod.Post, WATCHTOWER_URL);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
                 var response = await _httpClient.SendAsync(request);
 
