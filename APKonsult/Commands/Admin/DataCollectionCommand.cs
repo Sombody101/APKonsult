@@ -15,10 +15,10 @@ namespace APKonsult.Commands.Admin;
 /// This isn't actually data collection, just user management in the DB.
 /// So maybe it is data collection then...
 /// </summary>
-[Command("db"), RequireBotOwner]
+[Command("db"), Hidden, RequireBotOwner]
 public sealed class DataCollectionCommand(APKonsultContext _dbContext)
 {
-    [Command("sync"), RequireBotOwner]
+    [Command("sync"), Hidden, RequireBotOwner]
     public async Task SyncGuildUsersAsync(CommandContext ctx)
     {
         if (ctx.Guild is null)
@@ -50,7 +50,7 @@ public sealed class DataCollectionCommand(APKonsultContext _dbContext)
         await ctx.RespondAsync($"Found and added {newCount}.");
     }
 
-    [Command("collect"), TextAlias("extract")]
+    [Command("collect"), Hidden, TextAlias("extract")]
     public async Task CollectGuildUsersAsync(CommandContext ctx)
     {
         if (ctx.Guild is null)
@@ -85,14 +85,13 @@ public sealed class DataCollectionCommand(APKonsultContext _dbContext)
         await ctx.RespondAsync($"Found and updated {updateCount}.");
     }
 
-    [Command("download"), RequireBotOwner]
+    [Command("download"), Hidden, RequireBotOwner]
     public async Task GetUserHistoryAsync(CommandContext ctx)
     {
         DbSet<UserDbEntity> dbUsers = _dbContext.Set<UserDbEntity>();
 
         string usersJson = JsonConvert.SerializeObject(dbUsers, Formatting.Indented);
         DiscordMessageBuilder message = new DiscordMessageBuilder()
-            .WithContent("Here's a file containing some text:")
             .AddFile($"users-{Program.BUILD_TYPE.ToLower()}.json", new MemoryStream(Encoding.UTF8.GetBytes(usersJson)));
 
         DiscordDmChannel dmChannel = await ctx.User.CreateDmChannelAsync();

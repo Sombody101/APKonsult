@@ -22,13 +22,14 @@ public class UserDbEntity
         AvatarHash = transport.AvatarHash;
         BannerHash = transport.BannerHash;
         IsBot = transport.IsBot;
-        MfaEnabled = transport.MfaEnabled;
-        Verified = transport.Verified;
-        Email = transport.Email;
-        PremiumType = transport.PremiumType;
-        Locale = transport.Locale;
         Flags = transport.Flags;
         OAuthFlags = transport.OAuthFlags;
+    }
+
+    public UserDbEntity(DiscordUser transport, DateTimeOffset joinDate)
+        : this(transport)
+    {
+        JoinDate = joinDate;
     }
 
     [Key, Column("id"), DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -51,21 +52,6 @@ public class UserDbEntity
 
     [Column("is_bot")]
     public bool IsBot { get; set; } = false;
-
-    [Column("mfa_enabled")]
-    public bool? MfaEnabled { get; set; }
-
-    [Column("verified")]
-    public bool? Verified { get; set; }
-
-    [Column("email")]
-    public string? Email { get; set; }
-
-    [Column("premium_type")]
-    public DiscordPremiumType? PremiumType { get; set; }
-
-    [Column("locale")]
-    public string? Locale { get; set; } = string.Empty;
 
     public DiscordUserFlags? Flags { get; set; }
 
@@ -92,6 +78,9 @@ public class UserDbEntity
     [DefaultValue("")]
     public string? ReactionEmoji { get; set; }
 
+    [Column("join_date")]
+    public DateTimeOffset JoinDate { get; set; }
+
     public void UpdateUser(DiscordUser transport)
     {
         if (transport.Id != Id)
@@ -105,11 +94,6 @@ public class UserDbEntity
         AvatarHash = transport.AvatarHash;
         BannerHash = transport.BannerHash;
         IsBot = transport.IsBot;
-        MfaEnabled = transport.MfaEnabled;
-        Verified = transport.Verified;
-        Email = transport.Email;
-        PremiumType = transport.PremiumType;
-        Locale = transport.Locale;
         Flags = transport.Flags;
         OAuthFlags = transport.OAuthFlags;
     }

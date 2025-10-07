@@ -210,8 +210,14 @@ public class BotEventLinker(APKonsultContext Db) : IEventHandler<DiscordEventArg
         // Preload all enabled actions
         foreach (EventAction? action in dbGuild.DefinedActions.Where(a => a.Enabled))
         {
-            Log.Information("Initializing action {ActionName} for guild {GuildId}", action.ActionName, action.GuildId);
-            _ = InvokeScriptAsync(action, null, guild);
+            if (string.IsNullOrEmpty(action.Guild.Name))
+            {
+                // Due to DB migrations
+                action.Guild.Name = guild.Name;
+            }
+
+            Log.Information("Initializing action {ActionName} for guild {GuildName}", action.ActionName, guild.Name);
+            _ = await InvokeScriptAsync(action, null, guild);
         }
 
         return gAction;

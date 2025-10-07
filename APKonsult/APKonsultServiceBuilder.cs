@@ -2,8 +2,6 @@
 #define NO_LAVALINK
 
 using APKonsult.CommandChecks;
-using APKonsult.Commands;
-using APKonsult.Commands.Admin.TaskRunner;
 using APKonsult.Configuration;
 using APKonsult.Context;
 using APKonsult.Services;
@@ -15,7 +13,6 @@ using DSharpPlus.Commands.Exceptions;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
-using DSharpPlus.Commands.Trees;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using DSharpPlus.Extensions;
@@ -146,7 +143,6 @@ internal static partial class APKonsultServiceBuilder
 
                 CommandsConfiguration cConfig = new()
                 {
-                    DebugGuildId = 0,//ChannelIDs.DEBUG_GUILD_ID,
                     UseDefaultCommandErrorHandler = false,
                 };
 
@@ -156,7 +152,6 @@ internal static partial class APKonsultServiceBuilder
                     {
                         PrefixResolver = new DefaultPrefixResolver(true, [.. config.CommandPrefixes]).ResolvePrefixAsync,
                     }));
-
 
                     Assembly assembly = typeof(Program).Assembly;
                     cmdExt.AddCommands(assembly);

@@ -21,6 +21,7 @@ namespace APKonsult.Commands.Admin;
 
 [Command("manager"),
     TextAlias("manage"),
+    Hidden,
     RequireBotOwner]
 public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClient)
 {
@@ -65,6 +66,7 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
 
     [Command("removeadmin"),
         Description("Removes bot administrator status from the specified user"),
+        Hidden,
         RequireBotOwner]
     public async ValueTask RemoveAdminAsync(CommandContext ctx, ulong userId)
     {
@@ -101,17 +103,18 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
         await ctx.RespondAsync($"{disUser.Username} is no longer a bot administrator.");
     }
 
-    [Command("listadmins"), RequireBotOwner]
+    [Command("listadmins"), Hidden, RequireBotOwner]
     public async ValueTask ListAdminsAsync(CommandContext ctx)
     {
         DiscordEmbedBuilder embed = new DiscordEmbedBuilder().WithTitle("Active Administrators");
         IQueryable<UserDbEntity> admins = _dbContext.Users.Where(user => user.IsBotAdmin);
 
-        if (!admins.Any())
+        if (!await admins.AnyAsync())
         {
-            _ = embed.AddField("There currently zero administrators", $"User count: `{_dbContext.Users.Count()}`");
+            _ = embed.AddField("There currently zero administrators", $"User count: `{await _dbContext.Users.CountAsync()}`");
             await ctx.RespondAsync(embed);
             return;
+
         }
 
         foreach (UserDbEntity? user in admins)
@@ -126,6 +129,7 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
 
     [Command("addprefix"),
         Description("Adds a prefix to the bots configuration (requires restart)."),
+        Hidden,
         RequireBotOwner]
     public static async Task AddPrefixAsync(CommandContext ctx, params string[] prefixes)
     {
@@ -149,6 +153,7 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
 
     [Command("restart"),
         Description("Restarts the bot."),
+        Hidden,
         RequireBotOwner]
     public static async ValueTask RestartAsync(CommandContext ctx, int exit_code = 0)
     {
@@ -172,7 +177,7 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
         Environment.Exit(exit_code);
     }
 
-    [Command("agent")]
+    [Command("agent"), Hidden, RequireAdminUser]
     public async Task GetUserAgentAsync(CommandContext ctx)
     {
         string header = _httpClient.DefaultRequestHeaders.UserAgent.ToString();
@@ -183,11 +188,13 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
      * Blacklist Commands
      */
 
-    [Command("blacklist"), RequireBotOwner]
+    [Command("blacklist"), Hidden, RequireBotOwner]
     public sealed class BlacklistManager(APKonsultContext _dbContext)
     {
         [Command("user"),
-            DefaultGroupCommand]
+            DefaultGroupCommand,
+            Hidden,
+            RequireBotOwner]
         public async ValueTask BlacklistMemberAsync(
             CommandContext ctx,
 
@@ -196,9 +203,9 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
             [RemainingText]
             string? reason = null)
         {
-            BlacklistedDbEntity? activeUser = _dbContext.Set<BlacklistedDbEntity>()
+            BlacklistedDbEntity? activeUser = await _dbContext.Set<BlacklistedDbEntity>()
                 .Where(bl => bl.UserId == user.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (activeUser is not null)
             {
@@ -222,7 +229,7 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
                 .AddField("Reason", newlist.BanReason()));
         }
 
-        [Command("userid")]
+        [Command("userid"), Hidden, RequireBotOwner]
         public async ValueTask BlacklistMemberAsync(
             CommandContext ctx,
 
@@ -243,12 +250,12 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
             await BlacklistMemberAsync(ctx, user, reason);
         }
 
-        [Command("unblacklist"), RequireBotOwner]
+        [Command("unblacklist"), Hidden, RequireBotOwner]
         public async ValueTask UnblacklistMemberAsync(CommandContext ctx, DiscordUser user)
         {
-            BlacklistedDbEntity? activeUser = _dbContext.Set<BlacklistedDbEntity>()
+            BlacklistedDbEntity? activeUser = await _dbContext.Set<BlacklistedDbEntity>()
                 .Where(bl => bl.UserId == user.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (activeUser is null)
             {
@@ -275,7 +282,7 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
             await UnblacklistMemberAsync(ctx, user);
         }
 
-        [Command("guild")]
+        [Command("guild"), Hidden, RequireBotOwner]
         public async ValueTask BlacklistGuildAsync(CommandContext ctx, ulong guild_id, [RemainingText] string? reason = null)
         {
             DiscordGuild? guild = await ctx.Client.TryGetGuildAsync(guild_id);
@@ -286,9 +293,9 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
                 return;
             }
 
-            BlacklistedDbEntity? activeGuild = _dbContext.Set<BlacklistedDbEntity>()
+            BlacklistedDbEntity? activeGuild = await _dbContext.Set<BlacklistedDbEntity>()
                 .Where(bl => bl.GuildId == guild.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (activeGuild is not null)
             {
@@ -314,9 +321,9 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
 
         public async ValueTask UnblacklistGuildAsync(CommandContext ctx, DiscordGuild guild)
         {
-            BlacklistedDbEntity? activeUser = _dbContext.Set<BlacklistedDbEntity>()
+            BlacklistedDbEntity? activeUser = await _dbContext.Set<BlacklistedDbEntity>()
                 .Where(bl => bl.GuildId == guild.Id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (activeUser is null)
             {
@@ -381,14 +388,18 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
         }
     }
 
-    [Command("update"), RequireBotOwner]
+    [Command("update"), Hidden, RequireBotOwner]
     public sealed class UpdateManager(
 #if RELEASE
         HttpClient _httpClient, TokensModel tokens, ILogger<UpdateManager> _logger
 #endif
         )
     {
-        [Command("update"), TextAlias("upgrade"), DefaultGroupCommand, RequireBotOwner]
+        [Command("update"),
+            TextAlias("upgrade"),
+            DefaultGroupCommand,
+            Hidden,
+            RequireBotOwner]
 #if DEBUG
         public static async Task InvokeWatchtowerUpdateAsync(CommandContext ctx)
         {
@@ -454,10 +465,17 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
 #endif
     }
 
-    [Command("secret"), TextAlias("secrets"), Hidden, RequireBotOwner]
+    [Command("secret"),
+        TextAlias("secrets"),
+        Hidden,
+        RequireBotOwner]
     public sealed class SecretsManager(TokensModel tokens)
     {
-        [Command("get"), TextAlias("print"), DefaultGroupCommand, Hidden, RequireBotOwner]
+        [Command("get"),
+            TextAlias("print"),
+            DefaultGroupCommand,
+            Hidden,
+            RequireBotOwner]
         public async Task SecretlyShowSecretAsync(TextCommandContext ctx, string item)
         {
             if (string.IsNullOrWhiteSpace(item))
@@ -485,13 +503,13 @@ public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClie
 
     [Command("crash"), Hidden, RequireBotOwner, DoesNotReturn]
     [SuppressMessage("Major Bug", "S1764:Identical expressions should not be used on both sides of operators", Justification = "No.")]
-    public static async Task TestCrashAsync(TextCommandContext ctx, int limit = 10, int count = 0)
+    public static Task TestCrash(TextCommandContext ctx, int limit = 10, int count = 0)
     {
         if (count <= limit)
         {
             // Just to inflate the call stack a bit.
-            await TestCrashAsync(ctx, limit, count + 1);
-            return;
+            _ = TestCrash(ctx, limit, count + 1);
+            return null!;
         }
 
         throw new TestException();

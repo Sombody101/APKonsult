@@ -139,7 +139,7 @@ public sealed class TaskRuntime
                 throw new InvalidLuaRuntimeCallbackException();
             }
 
-            Log.Information("({ActionName}, {EventName}) for {GuildId} has been preserved.", Action.ActionName, Action.EventName, Action.GuildId);
+            Log.Information("({ActionName}, {EventName}) for {GuildName} has been preserved.", Action.ActionName, Action.EventName, Action.Guild.Name);
             Active = true;
         };
 

@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -13,8 +15,18 @@ public class GuildDbEntity
         Settings = new GuildConfigDbEntity();
     }
 
+    public GuildDbEntity(DiscordGuild guild)
+        : this(guild.Id)
+    {
+        Name = guild.Name;
+    }
+
     [Key, Column("id"), DatabaseGenerated(DatabaseGeneratedOption.None)]
     public ulong Id { get; init; }
+
+    [Column("name")]
+    [DefaultValue("")]
+    public string Name { get; set; }
 
     public GuildConfigDbEntity Settings { get; set; }
 
