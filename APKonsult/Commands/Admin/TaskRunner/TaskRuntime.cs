@@ -83,7 +83,7 @@ public sealed class TaskRuntime
             }
 
             string scriptName = Action?.ActionName ?? "[no action set]";
-            Log.Error("No event handler method found in Lua script '{ScriptName}'", scriptName);
+            Log.Error("Failed to find callback by the name '{Callback}' in the script '{ScriptName}'", functionName, scriptName);
             return 127;
         }
 
@@ -122,7 +122,8 @@ public sealed class TaskRuntime
         luaScript.Options.CheckThreadAccess = false;
         luaScript.Options.ScriptLoader = null;
 
-        _ = luaScript.Globals.RegisterConstants();
+        luaScript.Globals[""] = luaScript.Globals.RegisterConstants();
+        Log.Logger.Information("Exists: {Exists}", luaScript.Globals["version"] is not null);
         luaScript.Globals["ids"] = BindingsManager.GetLuaConstants(luaScript);
         luaScript.Globals["client"] = DiscordClientService.StaticInstance!.Client;
         luaScript.Globals["action"] = Action;

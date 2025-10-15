@@ -328,3 +328,41 @@ public static class ChannelHelpers
         return ctx.Channel.GuildId is null ? ctx.Channel : await ctx.User.CreateDmChannelAsync();
     }
 }
+
+public static class HeapTracker
+{
+    public static unsafe int HeapSize<T>(in T t) where T : class
+    {
+        MethodTable* methodTable = (MethodTable*)typeof(T).TypeHandle.Value;
+
+        if (typeof(T).IsArray)
+        {
+            Array arr = (t as Array)!;
+            return (int)methodTable->m_BaseSize + (arr.Length * methodTable->m_dwFlags.m_componentSize);
+        }
+
+        return (t is string str)
+            ? (int)methodTable->m_BaseSize + (str.Length * methodTable->m_dwFlags.m_componentSize)
+            : (int)methodTable->m_BaseSize;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal struct DWFlags
+    {
+        [FieldOffset(0)]
+        internal ushort m_componentSize;
+
+        [FieldOffset(2)]
+        internal ushort m_flags;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public unsafe struct MethodTable
+    {
+        [FieldOffset(0)]
+        internal DWFlags m_dwFlags;
+
+        [FieldOffset(4)]
+        internal uint m_BaseSize;
+    }
+}

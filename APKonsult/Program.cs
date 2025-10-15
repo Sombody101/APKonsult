@@ -1,11 +1,13 @@
 ﻿using APKonsult.Configuration;
 using APKonsult.Context;
 using DSharpPlus;
+using DSharpPlus.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
+using System.Reflection;
 
 namespace APKonsult;
 
@@ -26,6 +28,8 @@ internal static class Program
 
     private static async Task Main(string[] args)
     {
+        HandleArguments(args);
+
         Log.Logger = new LoggerConfiguration()
             .WriteTo.Console()
             .WriteTo.File(
@@ -84,6 +88,44 @@ internal static class Program
         {
             await e.LogToWebhookAsync();
             Environment.Exit(69);
+        }
+    }
+
+    private static void HandleArguments(string[] args)
+    {
+
+        if (args.Contains("--list-commands"))
+        {
+            const BindingFlags FLAGS = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
+            IEnumerable<Type> types = typeof(Program).Assembly.GetTypes().Where(type => !type.IsNested || type.DeclaringType?.GetCustomAttribute<CommandAttribute>() is null);
+
+            foreach (Type type in types)
+            {
+                if (type.GetCustomAttribute<CommandAttribute>() is not null)
+                {
+                    foreach (Type subcommand in type.GetNestedTypes(FLAGS)
+                        .Where(c => c.GetCustomAttribute<CommandAttribute>() is null))
+                    {
+                        
+                    }
+
+                    foreach (MethodInfo method in type.GetMethods(FLAGS)
+                        .Where(m => m.GetCustomAttribute<CommandAttribute>() is null))
+                    {
+
+                    }
+                }
+                else
+                {
+                    foreach ((MethodInfo method, CommandAttribute attr) in type.GetMethods().Where(m => m.GetCustomAttribute<CommandAttribute>() is not null)
+                        .Select(m => new Tuple<MethodInfo, CommandAttribute>(m, m.GetCustomAttribute<CommandAttribute>()!)))
+                    {
+                        Console.WriteLine($"{attr}: {method.Name}");
+                    }
+                }
+            }
+
+            Environment.Exit(0);
         }
     }
 
