@@ -34,7 +34,7 @@ public class EnsureDBEntitiesCheck : IContextCheck<UnconditionalCheckAttribute>
             return null;
         }
 
-        GuildDbEntity guildDbEntity = new(context.Guild.Id);
+        GuildDbEntity guildDbEntity = new(context.Guild);
 
         _ = await dbContext.Guilds.Upsert(guildDbEntity)
             .On(x => x.Id)

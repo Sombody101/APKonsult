@@ -4,8 +4,6 @@ using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Processors.SlashCommands.Metadata;
 using DSharpPlus.Entities;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Text;
 
 namespace APKonsult.Commands;
 
@@ -13,7 +11,7 @@ public static class PingCommand
 {
     [Command("ping"),
         Description("Pings the bot and returns the gateway latency."),
-        UserGuildInstallable, 
+        UserGuildInstallable,
         InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async Task PingAsync(CommandContext ctx)
     {
@@ -29,19 +27,19 @@ public static class PingCommand
 
     [Command("uptime"),
         Description("Get the bots uptime"),
-        UserGuildInstallable, 
+        UserGuildInstallable,
         InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async Task UptimeAsync(CommandContext ctx)
     {
         await ctx.RespondAsync(embed: new DiscordEmbedBuilder()
             .WithTitle("Uptime")
             .WithDefaultColor()
-            .WithDescription(FormatTickCount()));
+            .WithDescription(Shared.FormatTickCount()));
     }
 
     [Command("echo"),
         Description("Makes the bot create a message with your text"),
-        UserGuildInstallable, 
+        UserGuildInstallable,
         InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async Task EchoAsync(
         CommandContext ctx,
@@ -60,7 +58,7 @@ public static class PingCommand
 
     [Command("embed"),
         Description("The same as 'echo', but prints the text in an embed"),
-        UserGuildInstallable, 
+        UserGuildInstallable,
         InteractionAllowedContexts(DiscordInteractionContextType.Guild, DiscordInteractionContextType.BotDM, DiscordInteractionContextType.PrivateChannel)]
     public static async Task EchoEmbedAsync(
         CommandContext ctx,
@@ -75,50 +73,5 @@ public static class PingCommand
         }
 
         await ctx.RespondAsync(new DiscordEmbedBuilder().WithDescription(message));
-    }
-
-    public static string FormatTickCount()
-    {
-        TimeSpan uptime = DateTime.UtcNow - Process.GetCurrentProcess().StartTime.ToUniversalTime();
-
-        int days = uptime.Days;
-        int hours = uptime.Hours;
-        int minutes = uptime.Minutes;
-        int seconds = uptime.Seconds;
-
-        StringBuilder output = new();
-
-        if (days is not 0)
-        {
-            _ = output.Append(days)
-                .Append(" day")
-                .Append('s'.Pluralize(days))
-                .Append(", ");
-        }
-
-        if (hours is not 0)
-        {
-            _ = output.Append(hours)
-                .Append(" hour")
-                .Append('s'.Pluralize(hours))
-                .Append(", ");
-        }
-
-        if (minutes is not 0)
-        {
-            _ = output.Append(minutes)
-                .Append(" minute")
-                .Append('s'.Pluralize(minutes))
-                .Append(", ");
-        }
-
-        if (seconds is not 0)
-        {
-            _ = output.Append(seconds)
-                .Append(" second")
-                .Append('s'.Pluralize(seconds));
-        }
-
-        return $"{output} ({uptime.TotalMilliseconds:n0}ms)";
     }
 }

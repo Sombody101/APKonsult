@@ -7,9 +7,11 @@ using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace APKonsult;
 
@@ -72,68 +74,6 @@ public static class Shared
         catch (DSharpPlus.Exceptions.NotFoundException)
         {
             return false;
-        }
-    }
-
-    /// <summary>
-    /// Turns the given <see cref="Exception"/> <paramref name="exception"/> into a formatted <see cref="DiscordEmbedBuilder"/>.
-    /// </summary>
-    /// <param name="ex"></param>
-    /// <returns></returns>
-    public static IEnumerable<DiscordEmbedBuilder> MakeEmbedFromException(this Exception exception)
-    {
-        Exception? ex = exception;
-
-        do
-        {
-            DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
-                .WithTitle($"Bot Exception [From {Program.BUILD_TYPE} Build]")
-                .WithColor(DiscordColor.Red)
-                .AddField("Exception Type", ex.GetType().Name)
-                .AddField("Exception Source", ex.Source ?? "[no exception source]")
-                .AddField("Base", ex.TargetSite?.Name ?? "[no base method]")
-                .WithFooter($"Uptime: {PingCommand.FormatTickCount()}");
-
-            string description = ex.Message;
-
-            if (ex.StackTrace?.Length < 4096 - 13 - description.Length)
-            {
-                description = $"{description}\n```less\n{ex.StackTrace}\n```";
-                embed.WithDescription(description);
-                yield return embed;
-            }
-            else
-            {
-                yield return embed;
-
-                foreach (var stackEmbed in GetEmbedStackTrace(ex))
-                {
-                    yield return stackEmbed;
-                }
-            }
-        } while ((ex = ex?.InnerException) is not null);
-    }
-
-    private static IEnumerable<DiscordEmbedBuilder> GetEmbedStackTrace(Exception ex)
-    {
-        string? trace = ex.StackTrace;
-        if (string.IsNullOrWhiteSpace(trace))
-        {
-            yield break;
-        }
-
-        const int MAX_CHARS = 4096 - 12;
-        int count = (int)Math.Ceiling(trace.Length / (float)MAX_CHARS);
-        for (int i = 0; i < count; ++i)
-        {
-            int start = i * MAX_CHARS;
-            int length = start + Math.Min(trace.Length - start, MAX_CHARS);
-            string description = $"```less\n{trace[start..length]}\n```";
-
-            yield return new DiscordEmbedBuilder()
-                .WithTitle($"{i + 1}/{count}")
-                .WithDescription(description)
-                .WithColor(DiscordColor.Red);
         }
     }
 
@@ -209,7 +149,7 @@ public static class Shared
 
         DiscordWebhookBuilder webhookBuilder = new DiscordWebhookBuilder()
             .WithUsername($"APKonsult-{Program.BUILD_TYPE}")
-            .AddEmbed(ex.MakeEmbedFromException().Take(1).First().WithFooter($"From: {sender?.Name ?? "$NO_MODULE_PASSED"}\nUptime: {PingCommand.FormatTickCount()}"));
+            .AddEmbed(ex.MakeEmbedFromException().Take(1).First().WithFooter($"From: {sender?.Name ?? "$NO_MODULE_PASSED"}\nUptime: {FormatTickCount()}"));
 
         _ = await Program.WebhookClient.BroadcastMessageAsync(webhookBuilder);
     }
@@ -272,6 +212,50 @@ public static class Shared
         {
             return null;
         }
+    }
+    public static string FormatTickCount()
+    {
+        TimeSpan uptime = DateTime.UtcNow - Process.GetCurrentProcess().StartTime.ToUniversalTime();
+
+        int days = uptime.Days;
+        int hours = uptime.Hours;
+        int minutes = uptime.Minutes;
+        int seconds = uptime.Seconds;
+
+        StringBuilder output = new();
+
+        if (days is not 0)
+        {
+            _ = output.Append(days)
+                .Append(" day")
+                .Append('s'.Pluralize(days))
+                .Append(", ");
+        }
+
+        if (hours is not 0)
+        {
+            _ = output.Append(hours)
+                .Append(" hour")
+                .Append('s'.Pluralize(hours))
+                .Append(", ");
+        }
+
+        if (minutes is not 0)
+        {
+            _ = output.Append(minutes)
+                .Append(" minute")
+                .Append('s'.Pluralize(minutes))
+                .Append(", ");
+        }
+
+        if (seconds is not 0)
+        {
+            _ = output.Append(seconds)
+                .Append(" second")
+                .Append('s'.Pluralize(seconds));
+        }
+
+        return $"{output} ({uptime.TotalMilliseconds:n0}ms)";
     }
 
     /// <summary>

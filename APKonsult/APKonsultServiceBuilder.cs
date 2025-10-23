@@ -212,7 +212,15 @@ internal static partial class APKonsultServiceBuilder
         {
             string commandName = e.Context.Command.Name;
             string fullName = e.Context.Command.FullName;
-            Log.Error(e.Exception, "Given command: {CommandName} [full:{FullName}]", commandName, fullName);
+
+            if (commandName != fullName)
+            {
+                Log.Error(e.Exception, "Given command: {CommandName} [full:{FullName}]", commandName, fullName);
+            }
+            else
+            {
+                Log.Error(e.Exception, "Given command: {CommandName}", commandName);
+            }
         }
         else
         {

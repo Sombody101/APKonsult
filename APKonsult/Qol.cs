@@ -1,4 +1,5 @@
 ﻿using Humanizer;
+using System.Runtime.CompilerServices;
 
 namespace APKonsult;
 
@@ -11,6 +12,7 @@ public static class Qol
     /// <param name="string2"></param>
     /// <param name="go"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string Pluralize(this string string1, string string2, bool go)
     {
         return go
@@ -24,6 +26,7 @@ public static class Qol
     /// <param name="text"></param>
     /// <param name="go"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string Pluralize(this string text, bool go)
     {
         return go
@@ -37,6 +40,7 @@ public static class Qol
     /// <param name="plural"></param>
     /// <param name="num"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static char Pluralize(this char plural, bool go)
     {
         return go
@@ -50,6 +54,7 @@ public static class Qol
     /// <param name="text"></param>
     /// <param name="num"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string Pluralize(this string text, int num)
     {
         return text.Pluralize(num is not 1);
@@ -61,6 +66,7 @@ public static class Qol
     /// <param name="plural"></param>
     /// <param name="num"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static char Pluralize(this char plural, int num)
     {
         return plural.Pluralize(num is not 1);
