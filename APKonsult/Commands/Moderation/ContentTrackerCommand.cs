@@ -1,5 +1,5 @@
 ﻿using APKonsult.Commands.AutoCompleters;
-using APKonsult.Models;
+using APKonsult.Models.Main;
 using APKonsult.Services.RegexServices;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;

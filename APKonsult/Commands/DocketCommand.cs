@@ -1,7 +1,7 @@
 ﻿using APKonsult.CommandChecks.Attributes;
 using APKonsult.Context;
 using APKonsult.Interactivity.Moments.Pagination;
-using APKonsult.Models;
+using APKonsult.Models.Main;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;

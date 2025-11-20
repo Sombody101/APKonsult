@@ -104,6 +104,17 @@ public sealed class GitsAndShiggles(HttpClient _httpClient, ILogger<GitsAndShigg
         }
     }
 
+    [Command("ginfo")]
+    public async Task GetThingyAsync(CommandContext ctx, string name)
+    {
+        await ctx.RespondAsync(new DiscordEmbedBuilder()
+            .WithTitle("Release Information")
+            .AddField("Application", "Marvel's Deadpool VR")
+            .AddField("Current VRP release delay", "76 weeks")
+            .AddField("Latest request user", "deadpoolfan2025 (1440465522192814110)")
+            .WithColor(DiscordColor.Red));
+    }
+
     private async Task<T?> GetAndParseAsync<T>(string url)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);

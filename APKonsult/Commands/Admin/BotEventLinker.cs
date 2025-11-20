@@ -1,6 +1,6 @@
 ﻿using APKonsult.Commands.Admin.TaskRunner;
 using APKonsult.Context;
-using APKonsult.Models;
+using APKonsult.Models.Main;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;

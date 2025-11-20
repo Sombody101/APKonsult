@@ -1,5 +1,6 @@
 ﻿using APKonsult.CommandChecks.Attributes;
 using APKonsult.Context;
+using APKonsult.Models.Main;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ContextChecks;
 
@@ -16,7 +17,7 @@ public class RequireAdminUserCheck : IContextCheck<RequireAdminUserAttribute>
 
     public async ValueTask<string?> ExecuteCheckAsync(RequireAdminUserAttribute? _, CommandContext context)
     {
-        Models.UserDbEntity? user = await _dbContext.Users.FindAsync(context.User.Id);
+        UserDbEntity? user = await _dbContext.Users.FindAsync(context.User.Id);
 
         return user is null || (!user.IsBotAdmin && !RequireOwnerCheck.IsOwner(context))
             ? "You need to be a bot administrator!"

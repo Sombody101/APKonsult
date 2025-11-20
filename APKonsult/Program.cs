@@ -139,7 +139,7 @@ internal static class Program
         IHostBuilder builder = Host.CreateDefaultBuilder(args);
 
         _ = builder.ConfigureServices((_, services) => services.AddDbContextFactory<APKonsultContext>(
-            options => options.UseSqlite(APKonsultServiceBuilder.DB_CONNECTION_STRING)
+            options => options.UseSqlite(DbConstants.DB_CONNECTION_STRING)
         ));
 
         return builder;

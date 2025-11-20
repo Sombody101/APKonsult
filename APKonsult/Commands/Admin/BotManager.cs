@@ -2,7 +2,7 @@
 using APKonsult.Configuration;
 using APKonsult.Context;
 using APKonsult.Helpers;
-using APKonsult.Models;
+using APKonsult.Models.Main;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Processors.TextCommands;

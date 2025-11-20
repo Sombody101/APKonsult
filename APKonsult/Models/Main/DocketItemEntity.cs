@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace APKonsult.Models;
+namespace APKonsult.Models.Main;
 
 public class DocketItemEntity
 {

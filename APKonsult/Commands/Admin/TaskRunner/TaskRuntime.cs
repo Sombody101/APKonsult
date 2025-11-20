@@ -1,5 +1,5 @@
 ﻿using APKonsult.Commands.Admin.TaskRunner.FunctionBindings;
-using APKonsult.Models;
+using APKonsult.Models.Main;
 using APKonsult.Services;
 using DSharpPlus.EventArgs;
 using MoonSharp.Interpreter;

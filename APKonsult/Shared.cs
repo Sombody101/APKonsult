@@ -1,5 +1,6 @@
 ﻿using APKonsult.Commands;
 using APKonsult.Context;
+using APKonsult.Models.Main;
 using APKonsult.Services;
 using DSharpPlus;
 using DSharpPlus.Commands;
@@ -48,7 +49,7 @@ public static class Shared
     /// <returns></returns>
     public static async Task<bool> IsAdminAsync(this DiscordUser user, APKonsultContext _dbContext)
     {
-        Models.UserDbEntity? dbUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.IsBotAdmin && u.Id == user.Id);
+        UserDbEntity? dbUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.IsBotAdmin && u.Id == user.Id);
 
         return dbUser is not null;
     }

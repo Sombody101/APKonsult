@@ -1,5 +1,5 @@
 ﻿using APKonsult.Context;
-using APKonsult.Models;
+using APKonsult.Models.Main;
 using APKonsult.Services.RegexServices;
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -31,6 +31,7 @@ public sealed class MessageCreatedEventHandler(APKonsultContext _dbContext, IReg
         await HandleUserEmojiReactionAsync(sender, user, eventArgs);
         await HandleTagEvent.HandleTagAsync(sender, eventArgs, _dbContext);
         await HandleAfkStatusAsync(eventArgs, user);
+
         // Tracking service
         // await _regexService.UseRegexAsync(eventArgs.Guild.Id, eventArgs.Channel.Id, eventArgs.Message);
     }
@@ -52,9 +53,8 @@ public sealed class MessageCreatedEventHandler(APKonsultContext _dbContext, IReg
 
         if (mentionedUserIds.Count > 0)
         {
-            IEnumerable<AfkStatusEntity> afkMentionedUsers = await _dbContext.Set<AfkStatusEntity>()
-                .Where(x => mentionedUserIds.Contains(x.UserId) && x.AfkMessage != null)
-                .ToListAsync();
+            IEnumerable<AfkStatusEntity> afkMentionedUsers = _dbContext.Set<AfkStatusEntity>()
+                .Where(x => mentionedUserIds.Contains(x.UserId) && x.AfkMessage != null);
 
             if (afkMentionedUsers.Any())
             {

@@ -1,5 +1,4 @@
 ﻿// #define FORCE_TRACE_LOGS // Forces trace logging, even on Release builds.
-#define NO_LAVALINK
 
 using APKonsult.CommandChecks;
 using APKonsult.Configuration;
@@ -19,7 +18,6 @@ using DSharpPlus.Extensions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
-using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -35,8 +33,6 @@ namespace APKonsult;
 
 internal static partial class APKonsultServiceBuilder
 {
-    public const string DB_CONNECTION_STRING = $"Data Source={ChannelIDs.FILE_ROOT}/db/APKonsult-bot.db";
-
     public static IServiceProvider Services { get; private set; } = null!;
 
     public static Stopwatch StartupTimer { get; private set; } = null!;
@@ -90,28 +86,16 @@ internal static partial class APKonsultServiceBuilder
                     options =>
                     {
                         Log.Information("Adding SQLite DB service");
-                        options.UseSqlite(DB_CONNECTION_STRING);
+                        options.UseSqlite(DbConstants.DB_CONNECTION_STRING);
                     }
                 );
 
-                services.AddMemoryCache(options =>
-                {
-                    StringBuilder cacheInfo = new("Adding DB memory cache:");
-
-                    cacheInfo.AppendLine()
-                             .Append("\tCompaction:  ").AppendLine(options.CompactionPercentage.ToString())
-                             .Append("\tScan Freq:   ").AppendLine(options.ExpirationScanFrequency.Humanize())
-                             .Append("\tCache Limit: ").AppendLine(options.SizeLimit?.ToString() ?? "[No limit]");
-
-                    Log.Information(cacheInfo.ToString());
-                });
-
                 services.AddSingleton(new AllocationRateTracker())
-                    .AddSingleton(tokens);
+                        .AddSingleton(tokens);
 
                 // Tracking regex cache and service
-                services.AddScoped<IRegexCache, RegexCache>();
-                services.AddScoped<IRegexService, RegexService>();
+                services.AddScoped<IRegexCache, RegexCache>()
+                        .AddScoped<IRegexService, RegexService>();
 
                 services.AddSingleton(services =>
                 {
@@ -159,9 +143,10 @@ internal static partial class APKonsultServiceBuilder
                     cmdExt.CommandErrored += HandleCommandErroredAsync;
 
 #if DEBUG
-                    var types = assembly.GetTypes().SelectMany(t => t.GetMethods())
+                    var methods = assembly.GetTypes().SelectMany(t => t.GetMethods())
                         .Where(m => m.GetCustomAttribute<CommandAttribute>() is not null && m.GetCustomAttribute<UserGuildInstallableAttribute>() is null);
-                    Log.Logger.Warning($"{{Count}} commands do not have {nameof(UserGuildInstallableAttribute)}", types.Count());
+
+                    Log.Warning($"{{Count}} commands do not have {nameof(UserGuildInstallableAttribute)}", methods.Count());
 #endif
                 }, cConfig);
 

@@ -1,6 +1,6 @@
 ﻿using APKonsult.CommandChecks.Attributes;
 using APKonsult.Context;
-using APKonsult.Models;
+using APKonsult.Models.Main;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;

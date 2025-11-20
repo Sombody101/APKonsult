@@ -1,4 +1,4 @@
-﻿using APKonsult.Models;
+﻿using APKonsult.Models.Main;
 using DSharpPlus.Entities;
 using Serilog;
 

@@ -1,4 +1,5 @@
 ﻿using APKonsult.Context;
+using APKonsult.Models.Main;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
@@ -10,7 +11,7 @@ internal class ActionNameAutocomplete(APKonsultContext _dbContext) : IAutoComple
 {
     public async ValueTask<IEnumerable<DiscordAutoCompleteChoice>> AutoCompleteAsync(AutoCompleteContext context)
     {
-        Models.GuildDbEntity? guild = await _dbContext.Guilds
+        GuildDbEntity? guild = await _dbContext.Guilds
             .Include(x => x.DefinedActions)
             .FirstOrDefaultAsync(x => x.Id == context.Guild.Id);
 
@@ -19,7 +20,7 @@ internal class ActionNameAutocomplete(APKonsultContext _dbContext) : IAutoComple
             return [];
         }
 
-        IEnumerable<Models.EventAction> actions = guild.DefinedActions
+        IEnumerable<EventAction> actions = guild.DefinedActions
             .Where(x => x.ActionName.Contains(context.UserInput, StringComparison.OrdinalIgnoreCase));
 
         return !actions.Any()

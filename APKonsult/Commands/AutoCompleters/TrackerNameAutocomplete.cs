@@ -1,5 +1,5 @@
 ﻿using APKonsult.Context;
-using APKonsult.Models;
+using APKonsult.Models.Main;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;

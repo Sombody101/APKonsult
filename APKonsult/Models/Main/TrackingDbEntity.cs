@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace APKonsult.Models;
+namespace APKonsult.Models.Main;
 
 public class TrackingDbEntity
 {

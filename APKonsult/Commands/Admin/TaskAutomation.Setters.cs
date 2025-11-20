@@ -1,6 +1,6 @@
 ﻿using APKonsult.CommandChecks.Attributes;
 using APKonsult.Commands.AutoCompleters;
-using APKonsult.Models;
+using APKonsult.Models.Main;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;

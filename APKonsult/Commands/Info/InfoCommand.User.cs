@@ -1,4 +1,4 @@
-﻿using APKonsult.Models;
+﻿using APKonsult.Models.Main;
 using DSharpPlus;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands;

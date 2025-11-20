@@ -1,4 +1,4 @@
-﻿using APKonsult.Models;
+﻿using APKonsult.Models.Main;
 using Microsoft.EntityFrameworkCore;
 
 namespace APKonsult.Context;
@@ -29,7 +29,7 @@ public class APKonsultContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        _ = optionsBuilder.UseSqlite(APKonsultServiceBuilder.DB_CONNECTION_STRING);
+        _ = optionsBuilder.UseSqlite(DbConstants.DB_CONNECTION_STRING);
 
 #if DEBUG
         optionsBuilder.EnableSensitiveDataLogging();

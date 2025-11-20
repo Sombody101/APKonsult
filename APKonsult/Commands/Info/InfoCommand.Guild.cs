@@ -39,6 +39,7 @@ public partial class InfoCommand
                 DiscordGuildPreview guildPreview;
                 try
                 {
+                    var idGuild = await context.Client.GetGuildAsync(guildId.Value);
                     guildPreview = await context.Client.GetGuildPreviewAsync(guildId.Value);
                 }
                 catch (DiscordException)
@@ -83,7 +84,7 @@ public partial class InfoCommand
         await context.RespondAsync(embedBuilder);
     }
 
-    private async Task ProvideGuildInfoAsync(DiscordEmbedBuilder embedBuilder, DiscordGuild guild)
+    private static async Task ProvideGuildInfoAsync(DiscordEmbedBuilder embedBuilder, DiscordGuild guild)
     {
         if (guild.IconUrl is not null)
         {

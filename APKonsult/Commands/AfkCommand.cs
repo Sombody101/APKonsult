@@ -1,5 +1,5 @@
 ﻿using APKonsult.Context;
-using APKonsult.Models;
+using APKonsult.Models.Main;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Commands.Trees.Metadata;

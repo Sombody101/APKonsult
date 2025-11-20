@@ -1,4 +1,5 @@
 ﻿using APKonsult.Context;
+using APKonsult.Models.Main;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
@@ -19,7 +20,7 @@ public class UserReactionCommand
     [Command("add"), DefaultGroupCommand]
     public async Task AddReactionAsync(CommandContext ctx, DiscordEmoji emoji)
     {
-        Models.UserDbEntity user = await _dbContext.FindOrCreateDbUserAsync(ctx.User);
+        UserDbEntity user = await _dbContext.FindOrCreateDbUserAsync(ctx.User);
         string emoji_name = emoji.GetDiscordName();
 
         if (user.ReactionEmoji == emoji_name)
@@ -36,7 +37,7 @@ public class UserReactionCommand
     [Command("clear"), Description("Clears the reaction emoji (AKA: Stops the reactions)")]
     public async Task RemoveReactionAsync(CommandContext ctx)
     {
-        Models.UserDbEntity user = await _dbContext.FindOrCreateDbUserAsync(ctx.User);
+        UserDbEntity user = await _dbContext.FindOrCreateDbUserAsync(ctx.User);
 
         if (user.ReactionEmoji == string.Empty)
         {
