@@ -63,7 +63,7 @@ public sealed partial class LinkReleaseEventHandler : IEventHandler<MessageCreat
             if (json is null
                 || !json.RootElement.TryGetProperty("html_url", out JsonElement htmlUrl)
                 || !json.RootElement.TryGetProperty("name", out JsonElement title)
-                || !json.RootElement.TryGetProperty("created_at", out JsonElement publishTime)
+                || !json.RootElement.TryGetProperty("published_at", out JsonElement publishTime)
                 || !json.RootElement.TryGetProperty("tag_name", out JsonElement tagName)
                 || !json.RootElement.TryGetProperty("assets", out JsonElement assets))
             {

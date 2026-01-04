@@ -25,6 +25,13 @@ namespace APKonsult.Commands.Admin;
     RequireBotOwner]
 public sealed class BotManager(APKonsultContext _dbContext, HttpClient _httpClient)
 {
+    [Command("clearslashcommands"), RequireBotOwner]
+    public static async ValueTask ClearSlashCommandsAsync(CommandContext ctx)
+    {
+        await ctx.Client.BulkOverwriteGlobalApplicationCommandsAsync([]);
+        await ctx.RespondAsync("Slash commands overwritten.");
+    }
+
     [Command("addadmin"),
         Description("Gives the specified user bot administrator status."),
         RequireBotOwner]
