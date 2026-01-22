@@ -15,19 +15,6 @@ services:
         restart: unless-stopped
         user: 1001:1001
 
-    # Auto updater
-    watchtower:
-        image: containrrr/watchtower
-        volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
-        command: --http-api-update --http-api-periodic-polls --interval 14400
-        environment:
-            - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_HTTP_API_TOKEN}
-            - WATCHTOWER_CLEANUP=true
-        ports:
-            - "4302:8080"
-        restart: unless-stopped
-
     repl-cs-compiler:
         image: ghcr.io/discord-csharp/csharprepl:latest
         restart: always
